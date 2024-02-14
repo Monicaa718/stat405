@@ -17,3 +17,7 @@ cat("The running title: 07 - 405 - Crime in Chicago")
 cat("Members: Benjamin Mao, Cecilia Xin, Monica Liu")
 cat("Our dataset is sourced from the Chicago Police Department's CLEAR system, comprising reported incidents of crime in the City of Chicago from 2001 to the present, with addresses anonymized 
     at the block level for victim privacy.")
+
+library(readr)
+crimes_data <- read_csv("Crimes_-_2001_to_Present (1).csv")
+View(crimes_data)
