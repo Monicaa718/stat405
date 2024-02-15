@@ -1,31 +1,66 @@
 ---
-title: "Final_Project_First_Draft"
-format: pdf
+title: "Final Project First Draft"
 output: pdf_document
 ---
 \maketitle
 
-#Running Title:
+#### Running Title:
 07 - 405 - Crimes in Chicago
 
-#Group Members:
+#### Group Members:
 Benjamin Mao, Cecilia Xin, Monica Liu, Jared Boyd
 
-#Introduction to Project and Dataset:
+#### Introduction to Project and Dataset:
 Our goal for this project is to find patterns in crime in Chicago. Our dataset
 is sourced from the Chicago Police Department's CLEAR system, comprising 
 reported incidents of crime in the City of Chicago from 2001 to the present, 
 with addresses anonymized at the block level for victim privacy. This data
 includes the date, time, type, and general location of crime in Chicago.
 
-#Load in the Data and Creation of Plots
+#### Load in the Data
 ---
 
 ```{r}
-#install.packages("readr")
+#library(readr)
+#crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
+```
 
-library(readr)
-crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
+## Histogram
+With this plot we will analyze the number of crimes in different years
+
+```{r}
 
 ```
 
+## Curve
+With this plot we will analyze the number of crimes within a year/day
+
+```{r}
+
+```
+
+## Pie Chart
+With this plot we will analyze the frequency of the different crime types
+
+```{r}
+
+```
+
+## Barplot
+With this plot we will analyze the location of the crimes
+
+```{r}
+
+```
+
+## Boxplot
+
+```{r}
+
+```
+
+## Scatterplot
+
+```{r}
+
+```
