@@ -50,6 +50,8 @@ With this plot we will analyze the frequency of the different crime types
 With this plot we will analyze the location of the crimes
 
 ```{r}
+# Plot the location of the crimes using a barplot
+barplot(table(crimes_data$LocationDescription), main="Location of Crimes", xlab="Location", ylab="Frequency")
 
 ```
 
