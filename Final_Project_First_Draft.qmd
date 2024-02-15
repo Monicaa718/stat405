@@ -22,9 +22,10 @@ includes the date, time, type, and general location of crime in Chicago.
 ---
 
 ```{r}
+#install.packages("readr")
+
 library(readr)
 crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
-crimes_data$
 
 ```
 
