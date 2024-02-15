@@ -29,7 +29,8 @@ includes the date, time, type, and general location of crime in Chicago.
 With this plot we will analyze the number of crimes in different years
 
 ```{r}
-
+hist(crimes_data$Year, main = "Distribution of Years", xlab = "Year", 
+     ylab = "Frequency", col = "skyblue", border = "white")
 ```
 
 ## Curve
@@ -51,7 +52,11 @@ With this plot we will analyze the location of the crimes
 
 ```{r}
 # Plot the location of the crimes using a barplot
-barplot(table(crimes_data$LocationDescription), main="Location of Crimes", xlab="Location", ylab="Frequency")
+table = table(crimes_data$`Location Description`)
+ordered = table[order(table, decreasing = TRUE)][1:5]
+
+barplot(ordered, main="Location of Crimes", col = "skyblue", 
+        xlab="Location", ylab="Frequency", beside = TRUE)
 
 ```
 
