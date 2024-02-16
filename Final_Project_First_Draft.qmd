@@ -25,6 +25,7 @@ includes the date, time, type, and general location of crime in Chicago.
 #crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
 ```
 
+#### Six plots
 ## Histogram
 With this plot we will analyze the number of crimes in different years
 
@@ -79,3 +80,11 @@ barplot(ordered, main="Location of Crimes", col = "skyblue",
 ```{r}
 
 ```
+
+#### Statistical modeling and analysis
+
+```{r}
+# We will use a linear regression model to analyze the relationship between the number of crimes and the year
+# crimes and age
+# crimes and location
+
