@@ -44,7 +44,15 @@ With this plot we will analyze the number of crimes within a year/day
 With this plot we will analyze the frequency of the different crime types
 
 ```{r}
-
+crime_type <- table(crimes_data$`Primary Type`)
+total_crimes <- sum(crime_type)
+crime_type_percent <- prop.table(crime_type) * 100
+# sort types with frequencies below 3% into "Other"category 
+other_crime_types <- names(crime_type_percent)[crime_type_percent < 3]
+crime_type["Other"] <- sum(crime_type[other_crime_types])
+crime_type <- crime_type[!(names(crime_type) %in% other_crime_types)]
+# plot Primary Type pie chart
+pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(crime_type)))
 ```
 
 ## Barplot
