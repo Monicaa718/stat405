@@ -71,12 +71,22 @@ The graph shows that theft is the most common crime type, followed by battery an
 crime_type <- table(crimes_data$`Primary Type`)
 total_crimes <- sum(crime_type)
 crime_type_percent <- prop.table(crime_type) * 100
+
 # sort types with frequencies below 3% into "Other"category 
 other_crime_types <- names(crime_type_percent)[crime_type_percent < 3]
 crime_type["Other"] <- sum(crime_type[other_crime_types])
 crime_type <- crime_type[!(names(crime_type) %in% other_crime_types)]
+
 # plot Primary Type pie chart
 pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(crime_type)))
+
+# Also plot the percentage in another graph
+par(xpd = TRUE)
+plot.new()
+
+legend("topright", legend = paste(names(crime_type), "(", round(crime_type_percent[1:length(crime_type)], 2), "%)"), cex = 0.8, fill = rainbow(length(crime_type)))
+
+
 ```
 
 ## Barplot
@@ -88,8 +98,14 @@ The graph shows that most crimes occur in the street, followed by residences and
 table = table(crimes_data$`Location Description`)
 ordered = table[order(table, decreasing = TRUE)][1:5]
 
-barplot(ordered, main="Location of Crimes", col = "skyblue", 
-        xlab="Location", ylab="Frequency", beside = TRUE)
+# Make the x-axis labels more readable
+names(ordered) = c("Street", "Residence", "Apartment", "Sidewalk", "Other")
+
+# Plot bar plot
+barplot(ordered, main = "Top 5 Locations of Crimes", xlab = "Location", ylab = "Frequency", col = "lightblue")
+
+
+
 
 ```
 
