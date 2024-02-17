@@ -132,9 +132,30 @@ map
 ```
 
 #### Statistical modeling and analysis
+We will use a linear regression model to analyze the relationship between 
+the number of cannabis possession crimes and the number of heroin 
+possession crimes per year.
 
+As seen in the graph below, there is a pretty strong relation between
+the crimes of these two drugs in Chicago. Further in this project we intend
+to look more into this relation and try and find others.
 ```{r}
-# We will use a linear regression model to analyze the relationship between the number of crimes and the year
-# crimes and age
-# crimes and location
+cannabis = c()
+heroin = c()
 
+for(year in 2001:2024){
+  which = crimes_data$Year == year
+  desc = crimes_data$Description[which]
+  total_c = sum(grepl("CANNABIS", desc))
+  total_h = sum(grepl("HEROIN", desc))
+  cannabis = c(cannabis, total_c)
+  heroin = c(heroin, total_h)
+}
+reg_line = lm(heroin ~ cannabis)
+
+plot(x = cannabis, y = heroin, 
+     main="Linear Regression of Heroin Use on Cannabis Use", 
+     col = "blue", xlab="Amount of Cannabis Crimes per Year",
+     ylab="Amount of Heroin Crimes per Year")
+abline(reg_line[[1]][1], reg_line[[1]][2], col = "red")
+```
