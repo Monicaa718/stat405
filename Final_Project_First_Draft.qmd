@@ -21,13 +21,14 @@ includes the date, time, type, and general location of crime in Chicago.
 ---
 
 ```{r}
-#library(readr)
-#crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
+library(readr)
+crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
 ```
 
 #### Six plots
 ## Histogram
-With this plot we will analyze the number of crimes in different years
+With this plot we will analyze the number of crimes in different years.
+The graph shows that the number of crimes has been decreasing over time.
 
 ```{r}
 hist(crimes_data$Year, main = "Distribution of Years", xlab = "Year", 
@@ -35,24 +36,36 @@ hist(crimes_data$Year, main = "Distribution of Years", xlab = "Year",
 ```
 
 ## Curve
-With this plot we will analyze the number of crimes within a year
+With this plot we will analyze arrest rate over time.
+The graph shows that the arrest rate has been decreasing over time.
+
 
 ```{r}
-crime_data_2001_to_2023 <- crimes_data[crimes_data$Year %in% 2001:2023, ]
-total_crimes_2001_to_2023 <- rep(7996344)
-crime_data_2001_to_2023 <- data.frame(Year = 2001:2023, 
-                                      Number_of_Crimes = rep(total_crimes_2001_to_2023, 23))
-# curve
-plot(crime_data_2001_to_2023$Year, crime_data_2001_to_2023$Number_of_Crimes, 
-     type = "o",  
-     xlab = "Year", ylab = "Number of Crimes",
-     main = "Number of Crimes from 2001 to 2023",
-     col = "pink", pch = 16) 
+# Plot the year on the x-axis and the arrest rate (calculated per year) on the y-axis to see if arrest rates are increasing or decreasing over time. In the Arrest column, True means an arrest was made, and False means no arrest was made.
 
+# install.packages("dplyr")
+library(dplyr)
+arrests_by_year <- crimes_data %>% 
+  group_by(Year) %>% 
+  summarise(Arrest_Rate = sum(Arrest == "TRUE") / n())
+# arrests_by_year
 ```
 
+
+```{r}
+# curve
+
+plot(arrests_by_year$Year, arrests_by_year$Arrest_Rate, 
+     type = "o",  
+     xlab = "Year", ylab = "Arrest Rate",
+     main = "Arrest Rate from 2001 to 2023",
+     col = "pink", pch = 16, ylim = c(0, 1))
+```
+
+
 ## Pie Chart
-With this plot we will analyze the frequency of the different crime types
+With this plot we will analyze the frequency of the different crime types.
+The graph shows that theft is the most common crime type, followed by battery and criminal damage.
 
 ```{r}
 crime_type <- table(crimes_data$`Primary Type`)
@@ -67,7 +80,8 @@ pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(cr
 ```
 
 ## Barplot
-With this plot we will analyze the location of the crimes
+With this plot we will analyze the location of the crimes.
+The graph shows that most crimes occur in the street, followed by residences and apartments.
 
 ```{r}
 # Plot the location of the crimes using a barplot
@@ -79,56 +93,44 @@ barplot(ordered, main="Location of Crimes", col = "skyblue",
 
 ```
 
-## Heatmap/Dotchart
+## Scatter Plot
+With this plot we will analyze the relationship between the latitude and longitude of the crimes.
+The graph shows that most crimes occur in the city center, with a few outliers in the suburbs.
+Future improvement: use ggplot to create a more detailed and visually appealing scatterplot.
 
 ```{r}
-# With this plot we will analyze the correlation between domestic & arrest
+# Print a scatterplot of lattitude versus longitude. This could reveal if certain areas of the city are more prone to crime. Don't include ggplot.
+sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
 
-# Dot chart
-domestic_freq <- table(crimes_data$Domestic)
-arrest_freq <- table(crimes_data$Arrest)
-crimes_data$Domestic <- as.factor(crimes_data$Domestic)
-crimes_data$Arrest <- as.factor(crimes_data$Arrest)
-par(mfrow = c(1, 2))  
-dotchart(domestic_freq, main = "Frequency of Domestic", xlab = "Frequency", cex = 1.5)
-dotchart(arrest_freq, main = "Frequency of Arrest", xlab = "Frequency", cex = 1)
-
-# Or heatmap
-crimes_data$Arrest <- as.numeric(as.factor(crimes_data$Arrest))
-crimes_data$Domestic <- as.numeric(as.factor(crimes_data$Domestic))
-# correlation matrix
-correlation_matrix <- cor(crimes_data[, c("Domestic", "Arrest")])
-print(correlation_matrix)
-heatmap(correlation_matrix, 
-        Rowv = NA, Colv = NA, 
-        col = cm.colors(256), 
-        scale = "none",
-        margins = c(6, 6),
-        cexRow = 1, cexCol = 1)
-```
-The correlation coefficient between "Domestic" and "Arrest" is -0.06, indicating a weak negative correlation between the likelihood of a crime being domestic and the occurrence of an arrest. In other words, there seems to be little to no relationship between whether a crime is domestic and whether an arrest is made.
-
-## Scatterplot
-
-```{r}
-## Scatterplot/leaflet map
-# With this plot we will analyze the latitute and longitude (location) of crimes
-
-plot(crimes_data$Longitude, crimes_data$Latitude, 
+plot(sampled_crimes$Longitude, sampled_crimes$Latitude, 
      xlab = "Longitude", ylab = "Latitude",
      main = "Scatterplot of Crime Locations",
-     xlim = c(-87.85, -87.5), ylim = c(41.6, 41.9))
-# There are some issues with the scatterplot, so maybe a leaflet map will be better:
-install.packages("leaflet")
-library(leaflet)
-install.packages("leaflet.extras")
-library(leaflet.extras)
-# leaflet map
-map <- leaflet(data = crimes_data) %>%
-  addTiles() %>%
-  addHeatmap(lng = ~Longitude, lat = ~Latitude, radius = 10) %>%
-  setView(lng = -87.675, lat = 41.75, zoom = 12)  # Center and zoom level for the map
-map
+     xlim = c(-87.85, -87.5), ylim = c(41.6, 41.9), pch = 20, col = "blue", cex = 0.5, bg = "white")
+
+```
+
+## Density Plot
+This is a density plot showing how crime incidents are distributed across different times of the day, with the x-axis representing hours since midnight and the y-axis representing the density of crime occurrences.
+The graph shows that crime is most likely to occur between 12:00 PM and 12:00 AM, with a peak around 8:00 PM.
+
+```{r}
+# Assuming your dataset is named 'data' and the date column is named 'Date'
+
+# Step 1: Convert 'Date' to POSIXct (date-time object) and extract time
+crimes_data$Time <- format(strptime(crimes_data$Date, format = "%m/%d/%Y %I:%M:%S %p"), format = "%H:%M:%S")
+
+# Step 2: Convert Time to hours since midnight
+crimes_data$Hours <- as.numeric(substr(crimes_data$Time, 1, 2)) + 
+              as.numeric(substr(crimes_data$Time, 4, 5))/60 +
+              as.numeric(substr(crimes_data$Time, 7, 8))/3600
+
+# Step 3: Create the density plot
+plot(density(crimes_data$Hours, na.rm = TRUE), 
+     main = "Density of Crimes Over Time of Day",
+     xlab = "Hours (since midnight)",
+     ylab = "Density")
+
+
 ```
 
 #### Statistical modeling and analysis
