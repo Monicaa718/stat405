@@ -177,3 +177,37 @@ plot(x = cannabis, y = heroin,
      ylab="Amount of Heroin Crimes per Year")
 abline(reg_line[[1]][1], reg_line[[1]][2], col = "red")
 ```
+
+#### Six GGPlots
+
+## Graph 1
+```{r}
+
+```
+
+## Graph 2
+```{r}
+
+```
+
+## Graph 3
+```{r}
+
+```
+
+## Graph 4
+```{r}
+
+```
+
+## Graph 5
+```{r}
+
+```
+
+## Graph 6
+```{r}
+
+```
+
+
