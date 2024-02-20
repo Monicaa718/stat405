@@ -1,5 +1,5 @@
 ---
-title: "Final Project First Draft"
+title: "Final Project Second Draft"
 output: pdf_document
 ---
 \maketitle
@@ -25,7 +25,7 @@ library(readr)
 crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
 ```
 
-#### Six plots
+#### Six Standard Plots
 ## Histogram
 With this plot we will analyze the number of crimes in different years.
 The graph shows that the number of crimes has been decreasing over time.
