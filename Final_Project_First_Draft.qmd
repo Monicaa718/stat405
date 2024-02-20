@@ -22,7 +22,7 @@ includes the date, time, type, and general location of crime in Chicago.
 
 ```{r}
 library(readr)
-crimes_data <- read_csv("Crimes_-_2001_to_Present.csv")
+crimes_data <- read_csv("Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
 ```
 
 #### Six Standard Plots
@@ -38,6 +38,7 @@ hist(crimes_data$Year, main = "Distribution of Years", xlab = "Year",
 ## Curve
 With this plot we will analyze arrest rate over time.
 The graph shows that the arrest rate has been decreasing over time.
+It starts around 0.3 and slowly decreases to around 0.1  from 2001 to 2023
 
 
 ```{r}
@@ -59,13 +60,16 @@ plot(arrests_by_year$Year, arrests_by_year$Arrest_Rate,
      type = "o",  
      xlab = "Year", ylab = "Arrest Rate",
      main = "Arrest Rate from 2001 to 2023",
-     col = "pink", pch = 16, ylim = c(0, 1))
+     col = "pink", pch = 16, ylim = c(0, 0.5))
 ```
 
 
 ## Pie Chart
 With this plot we will analyze the frequency of the different crime types.
-The graph shows that theft is the most common crime type, followed by battery and criminal damage.
+The graph shows that theft is the most common crime type, 
+followed by battery and criminal damage.
+We have ordered the legend in decreasing amounts to make a clear
+view of the most common to least common crimes.
 
 ```{r}
 crime_type <- table(crimes_data$`Primary Type`)
@@ -84,9 +88,14 @@ pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(cr
 par(xpd = TRUE)
 plot.new()
 
-legend("topright", legend = paste(names(crime_type), "(", round(crime_type_percent[1:length(crime_type)], 2), "%)"), cex = 0.8, fill = rainbow(length(crime_type)))
+order = order(crime_type_percent[names(crime_type)], decreasing = TRUE)
 
+round_desc_perc = round((crime_type_percent[names(crime_type)])[order], 2)
+ordered_names = names(crime_type)[order]
+ordered_colors = rainbow(length(crime_type))[order]
 
+legend("topright", legend = paste(ordered_names, "(", 
+  round_desc_perc, "%)"), cex = 0.8, fill = ordered_colors)
 ```
 
 ## Barplot
@@ -103,10 +112,6 @@ names(ordered) = c("Street", "Residence", "Apartment", "Sidewalk", "Other")
 
 # Plot bar plot
 barplot(ordered, main = "Top 5 Locations of Crimes", xlab = "Location", ylab = "Frequency", col = "lightblue")
-
-
-
-
 ```
 
 ## Scatter Plot
@@ -115,7 +120,7 @@ The graph shows that most crimes occur in the city center, with a few outliers i
 Future improvement: use ggplot to create a more detailed and visually appealing scatterplot.
 
 ```{r}
-# Print a scatterplot of lattitude versus longitude. This could reveal if certain areas of the city are more prone to crime. Don't include ggplot.
+# Print a scatterplot of lattitude versus longitude. This could reveal if certain areas of the city are more prone to crime.
 sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
 
 plot(sampled_crimes$Longitude, sampled_crimes$Latitude, 
