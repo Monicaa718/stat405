@@ -17,6 +17,9 @@ reported incidents of crime in the City of Chicago from 2001 to the present,
 with addresses anonymized at the block level for victim privacy. This data
 includes the date, time, type, and general location of crime in Chicago.
 
+In the second draft, we improved the first draft by fixing up some details in 
+graphs and added six more graphs using ggplot.
+
 #### Load in the Data
 ---
 
@@ -24,6 +27,7 @@ includes the date, time, type, and general location of crime in Chicago.
 library(readr)
 crimes_data <- read_csv("Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
 ```
+
 
 #### Six Standard Plots
 ## Histogram
@@ -184,6 +188,11 @@ abline(reg_line[[1]][1], reg_line[[1]][2], col = "red")
 ```
 
 #### Six GGPlots
+```{r}
+#install.packages("ggplot2")
+library(ggplot2)
+
+```
 
 ## Graph 1
 ```{r}
@@ -199,9 +208,95 @@ abline(reg_line[[1]][1], reg_line[[1]][2], col = "red")
 ```{r}
 
 ```
+```{r}
+#print the columns of crimes_data
+print(crimes_data$Date)
+```
+
+```{r}
+```
 
 ## Graph 4
+
 ```{r}
+# library
+library(ggridges)
+library(ggplot2)
+library(viridis)
+library(hrbrthemes)
+
+# Plot
+ggplot(lincoln_weather, aes(x = `Mean Temperature [F]`, y = `Month`, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis(name = "Temp. [F]", option = "C") +
+  labs(title = 'Temperatures in Lincoln NE in 2016') +
+  theme_ipsum() +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    )
+
+# print (lincoln_weather$'Mean Temperature [F]')
+# print (lincoln_weather$'Month')
+print(lincoln_weather)
+
+
+```
+
+```{r}
+# library
+library(ggridges)
+library(ggplot2)
+library(viridis)
+# install.packages("hrbrthemes")
+library(hrbrthemes)
+# install.packages("dplyr")
+library(dplyr)
+
+#extract the date from Date
+crimes_data$DateWithoutTime <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m/%d/%Y")
+
+# Sum up the number of crimes per day
+crimes_per_day <- crimes_data %>% 
+  group_by(DateWithoutTime) %>% 
+  summarise(n = n())
+
+#extract the month from DateWithoutTime
+crimes_per_day$Month <- format(as.Date(crimes_per_day$DateWithoutTime, format = "%m/%d/%Y"), "%m")
+print(crimes_per_day)
+
+# print(crimes_per_day)
+
+
+
+```
+```{r}
+
+```
+
+
+
+
+```{r}
+# Create the ridgeline plot for the crimes_data
+
+ggplot(crimes_per_day, aes(x = `n`, y = `Month`, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis(name = "Number of Crimes", option = "C") +
+  labs(title = 'Number of Crimes in Chicago per Month') +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  )
+
+
+```
+
+```{r}
+
 
 ```
 
