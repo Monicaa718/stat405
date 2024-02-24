@@ -264,10 +264,16 @@ type = crimes_data$`Primary Type`[filter == TRUE]
 
 crimes_data_filtered = data.frame(District = dist, Type = type)
 
-ggplot(data = crimes_data_filtered) +
-  aes(District) + 
-  facet_wrap(~ Type) +
-  geom_bar()
+# Plot
+ggplot(crimes_data_filtered, aes(x = District)) +
+  geom_bar(aes(fill = Type), position = "dodge") +
+  facet_wrap(~Type, ncol = 3) +
+  theme_minimal() +
+  labs(title = "Frequency of Crimes in Each District",
+       x = "District",
+       y = "Frequency of Crimes")
+
+
 ```
 
 
@@ -354,7 +360,6 @@ crimes_per_day <- crimes_data %>%
 
 #extract the month from DateWithoutTime
 crimes_per_day$Month <- format(as.Date(crimes_per_day$DateWithoutTime, format = "%m/%d/%Y"), "%m")
-print(crimes_per_day)
 
 # print(crimes_per_day)
 
@@ -392,23 +397,7 @@ The chart also shows that the number of thefts is lowest in the winter months, w
 This could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for theft.
 
 
-```{r}
-# Packages
-library(ggplot2)
-library(dplyr)
- 
-# create data
-time <- as.numeric(rep(seq(1,7),each=7))  # x Axis
-value <- runif(49, 10, 100)               # y Axis
-group <- rep(LETTERS[1:7],times=7)        # group, one shape per group
-data <- data.frame(time, value, group)
 
-# stacked area chart
-ggplot(data, aes(x=time, y=value, fill=group)) + 
-    geom_area()
-
-
-```
 ```{r}
 # Extract month from Data in crimes_data
 crimes_data$Month <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m")
@@ -440,29 +429,36 @@ ggplot(data, aes(x=time, y=value, fill=group)) +
 ```
 
 ## Graph 6
-This is a heatmap to visualize the concentration of crimes by week of the month and day of the month.
-The color intensity in the heatmap represents the number of crimes. 
+Intrepretation:
+This heatmap shows the number of crimes in Chicago per location.
+The heatmap shows that most crimes occur in the city center, with a few outliers in the suburbs.
+This could be due to the fact that more people live and work in the city center, and that the suburbs are more likely to be patrolled by police.
+The heatmap also shows that the number of crimes is lowest in the parks, with a trough in the schools.
+This could be due to the fact that parks are more likely to be patrolled by police, and that schools are more likely to be frequented by people.
+ 
 ```{r}
-library(lubridate)
-library(dplyr)
+# Library
+library(ggplot2)
 
-crimes_data$Date <- as.Date(crimes_data$Date, "%Y-%m-%d") 
-crimes_data$DayOfMonth <- day(crimes_data$Date)
-crimes_data$WeekOfMonth <- ceiling(day(crimes_data$Date) / 7)
+# Sampling
+sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 1000), ]
 
-crimes_data <- crimes_data %>%
-  group_by(DayOfMonth, WeekOfMonth) %>%
-  summarise(CrimeCount = n())
+# approximate the latitude and longtiude to the nearest 0.01
+sampled_crimes$Latitude <- round(sampled_crimes$Latitude, 2)
+sampled_crimes$Longitude <- round(sampled_crimes$Longitude, 2)
+x <- sampled_crimes$Latitude
+y <- sampled_crimes$Longitude
+my_data <- expand.grid(X=x, Y=y)
+my_data$Z <- runif(400, 0, 5)
+# print(my_data)
+```
 
-# heatmap
-ggplot(crimes_data, aes(x = WeekOfMonth, y = DayOfMonth, fill = CrimeCount)) +
-  geom_tile(colour = "white") +
-  scale_fill_gradient(low = "white", high = "steelblue") +
-  theme_minimal() +
-  labs(title = "Heatmap of Crime Concentration",
-       x = "Week of the Month",
-       y = "Day of the Month",
-       fill = "Number of Crimes")
+
+```{r}
+# Heatmap 
+ggplot(my_data, aes(X, Y, fill= Z)) + 
+  geom_tile()
+
 ```
 
 
