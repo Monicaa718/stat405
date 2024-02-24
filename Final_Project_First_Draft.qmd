@@ -211,6 +211,7 @@ library(ggplot2)
 
 ## Graph 1
 Intrepretation:
+This lollipop plot graph shows the number of crimes in Chicago per hour. The graph shows that the number of crimes is highest in the evening, with a peak around 8:00 PM. This could be due to the warmer weather and longer days, which may lead to more people being outside and more opportunities for crime. The graph also shows that the number of crimes is lowest in the early morning, with a trough around 5:00 AM. This could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for crime.
 
 ```{r}
 # Libraries
@@ -269,13 +270,13 @@ ggplot(data = crimes_data_filtered) +
 ## Graph 3
 ```{r}
 # Packed circle charts
+# install.packages("dplyr")
 library(dplyr)
+# install.packages("tidyr")
 library(tidyr)
 
-crime_counts <- crimes_data %>%
-  group_by(`Primary Type`) %>%
-  summarise(count = n()) %>%
-  arrange(desc(count))
+
+
 
 # cumulative sum column
 crime_counts <- crime_counts %>%
@@ -294,6 +295,53 @@ ggplot(crime_counts, aes(x = 1, y = cumsum_count, size = radius, fill = `Primary
   labs(title = "Packed Circle Chart of Crime Types",
        x = NULL, y = NULL)
 ```
+```{r}
+# libraries
+# install.packages("packcircles")
+library(packcircles)
+# install.packages("ggplot2")
+library(ggplot2)
+# install.packages("viridis")
+library(viridis)
+
+table = table(crimes_data$`Location Description`)
+ordered_location = table[order(table, decreasing = TRUE)][1:5]
+# Convert into a dataframe with two columns: group and value
+crime_counts <- data.frame(
+  `Primary Type` = names(ordered_location),
+  count = ordered_location
+)
+
+print(crime_counts)
+```
+
+
+```{r}
+# libraries
+library(packcircles)
+library(ggplot2)
+library(viridis)
+
+# Create data
+data <- data.frame(group=paste("Group", letters[1:20]), value=sample(seq(1,100),20)) 
+print(data)
+# Generate the layout
+packing <- circleProgressiveLayout(data$value, sizetype='area')
+packing$radius <- 0.95*packing$radius
+data <- cbind(data, packing)
+dat.gg <- circleLayoutVertices(packing, npoints=50)
+
+# Plot 
+ggplot() + 
+  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=id), colour = "black", alpha = 0.6) +
+  scale_fill_viridis() +
+  geom_text(data = data, aes(x, y, size=value, label = group), color="black") +
+  theme_void() + 
+  theme(legend.position="none")+ 
+  coord_equal()
+
+```
+
 
 ## Graph 4
 Interpretation:
