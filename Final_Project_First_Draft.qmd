@@ -233,11 +233,17 @@ data <- data.frame(
 )
  
 # Plot
+# Give a title to the graph
 ggplot(data, aes(x=x, y=y)) +
-  geom_point() + 
-  geom_segment( aes(x=x, xend=x, y=0, yend=y))
+  geom_segment( aes(x=x, xend=x, y=0, yend=y), color="skyblue") +
+  geom_point( color="skyblue", size=3) +
+  theme_minimal() +
+  labs(title = "Number of Crimes in Chicago per Hour",
+       x = "Hour",
+       y = "Number of Crimes")
 
-print(data)
+
+# print(data)
 ```
 
 ## Graph 2
@@ -268,33 +274,8 @@ ggplot(data = crimes_data_filtered) +
 
 
 ## Graph 3
-```{r}
-# Packed circle charts
-# install.packages("dplyr")
-library(dplyr)
-# install.packages("tidyr")
-library(tidyr)
-
-
-
-
-# cumulative sum column
-crime_counts <- crime_counts %>%
-  mutate(cumsum_count = cumsum(count))
-
-# radius for each circle
-crime_counts <- crime_counts %>%
-  mutate(radius = sqrt(cumsum_count/pi))
-
-# plot
-ggplot(crime_counts, aes(x = 1, y = cumsum_count, size = radius, fill = `Primary Type`)) +
-  geom_point(shape = 21, color = "black") +
-  scale_size_continuous(range = c(5, 20)) +
-  theme_void() +
-  theme(legend.position = "right") +
-  labs(title = "Packed Circle Chart of Crime Types",
-       x = NULL, y = NULL)
-```
+Intrepretation:
+This packed circle chart shows the number of crimes in Chicago per location. The chart shows that the number of crimes is highest in the street, followed by residences and apartments. This could be due to the fact that more people are outside on the street, and that residences and apartments are more likely to be targeted by criminals. The chart also shows that the number of crimes is lowest in the alley, with a trough in the park. This could be due to the fact that alleys are less frequented by people, and that parks are more likely to be patrolled by police.
 ```{r}
 # libraries
 # install.packages("packcircles")
@@ -312,7 +293,7 @@ crime_counts <- data.frame(
   count = ordered_location
 )
 
-print(crime_counts)
+# print(crime_counts)
 ```
 
 
