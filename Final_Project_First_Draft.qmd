@@ -48,7 +48,7 @@ It starts around 0.3 and slowly decreases to around 0.1  from 2001 to 2023
 ```{r}
 # Plot the year on the x-axis and the arrest rate (calculated per year) on the y-axis to see if arrest rates are increasing or decreasing over time. In the Arrest column, True means an arrest was made, and False means no arrest was made.
 
-# install.packages("dplyr")
+#install.packages("dplyr")
 library(dplyr)
 arrests_by_year <- crimes_data %>% 
   group_by(Year) %>% 
@@ -268,14 +268,31 @@ ggplot(data = crimes_data_filtered) +
 
 ## Graph 3
 ```{r}
+# Packed circle charts
+library(dplyr)
+library(tidyr)
 
-```
-```{r}
-#print the columns of crimes_data
-print(crimes_data$Date)
-```
+crime_counts <- crimes_data %>%
+  group_by(`Primary Type`) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
 
-```{r}
+# cumulative sum column
+crime_counts <- crime_counts %>%
+  mutate(cumsum_count = cumsum(count))
+
+# radius for each circle
+crime_counts <- crime_counts %>%
+  mutate(radius = sqrt(cumsum_count/pi))
+
+# plot
+ggplot(crime_counts, aes(x = 1, y = cumsum_count, size = radius, fill = `Primary Type`)) +
+  geom_point(shape = 21, color = "black") +
+  scale_size_continuous(range = c(5, 20)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  labs(title = "Packed Circle Chart of Crime Types",
+       x = NULL, y = NULL)
 ```
 
 ## Graph 4
@@ -394,6 +411,30 @@ ggplot(data, aes(x=time, y=value, fill=group)) +
 ```
 
 ## Graph 6
+This is a heatmap to visualize the concentration of crimes by week of the month and day of the month.
+The color intensity in the heatmap represents the number of crimes. 
+```{r}
+library(lubridate)
+library(dplyr)
+
+crimes_data$Date <- as.Date(crimes_data$Date, "%Y-%m-%d") 
+crimes_data$DayOfMonth <- day(crimes_data$Date)
+crimes_data$WeekOfMonth <- ceiling(day(crimes_data$Date) / 7)
+
+crimes_data <- crimes_data %>%
+  group_by(DayOfMonth, WeekOfMonth) %>%
+  summarise(CrimeCount = n())
+
+# heatmap
+ggplot(crimes_data, aes(x = WeekOfMonth, y = DayOfMonth, fill = CrimeCount)) +
+  geom_tile(colour = "white") +
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  theme_minimal() +
+  labs(title = "Heatmap of Crime Concentration",
+       x = "Week of the Month",
+       y = "Day of the Month",
+       fill = "Number of Crimes")
+```
 
 
 
