@@ -195,13 +195,48 @@ library(ggplot2)
 ```
 
 ## Graph 1
+Below is a Density Graph using geom_line()
+It shows that the rate of crime seems to correlate with the season or
+some other factor that varies each year.
+It also shows a slow decrease in the density of crime from
+2001 to 2024.
 ```{r}
+date = substr(crimes_data$Date, 1, 10)
 
+years_after <- as.numeric(substr(date, 1, 2)) / 30 + 
+              as.numeric(substr(date, 4, 5)) / 365 +
+              as.numeric(substr(date, 7, 10))
+
+density = density(years_after)
+
+ggplot(data.frame = density) +
+  aes(density$x, density$y) +
+  geom_line() +
+  labs(x = "Year", y = "Density", title = "Density of Crime over Time")
 ```
 
 ## Graph 2
-```{r}
+This graph is a Facet Wrap of a Bar plot. It shows for each of the
+most common types of crime the frequency of them in each district.
+From this graph we can see that some districts are much safer
+in terms of frequency of crimes.
 
+Another note is that there are massive spikes in Narcotics for certain
+districts and pretty even across the others.
+```{r}
+common_crimes = sort(table(crimes_data$`Primary Type`), decreasing = TRUE)[1:9]
+
+filter = crimes_data$`Primary Type` %in% names(common_crimes)
+
+dist = crimes_data$District[filter == TRUE]
+type = crimes_data$`Primary Type`[filter == TRUE]
+
+crimes_data_filtered = data.frame(District = dist, Type = type)
+
+ggplot(data = crimes_data_filtered) +
+  aes(District) + 
+  facet_wrap(~ Type) +
+  geom_bar()
 ```
 
 ## Graph 3
