@@ -217,32 +217,14 @@ print(crimes_data$Date)
 ```
 
 ## Graph 4
-
-```{r}
-# library
-library(ggridges)
-library(ggplot2)
-library(viridis)
-library(hrbrthemes)
-
-# Plot
-ggplot(lincoln_weather, aes(x = `Mean Temperature [F]`, y = `Month`, fill = ..x..)) +
-  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
-  scale_fill_viridis(name = "Temp. [F]", option = "C") +
-  labs(title = 'Temperatures in Lincoln NE in 2016') +
-  theme_ipsum() +
-    theme(
-      legend.position="none",
-      panel.spacing = unit(0.1, "lines"),
-      strip.text.x = element_text(size = 8)
-    )
-
-# print (lincoln_weather$'Mean Temperature [F]')
-# print (lincoln_weather$'Month')
-print(lincoln_weather)
-
-
-```
+Interpretation:
+This ridgeline plot shows the number of crimes in Chicago per month.
+The plot shows that the number of crimes is highest in the summer months,
+with a peak in July. This could be due to the warmer weather and longer days,
+which may lead to more people being outside and more opportunities for crime.
+The plot also shows a smaller peak in December, which could be due to the holiday season.
+The plot also shows that the number of crimes is lowest in the winter months, with a trough in February.
+This could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for crime.
 
 ```{r}
 # library
@@ -292,6 +274,16 @@ ggplot(crimes_per_day, aes(x = `n`, y = `Month`, fill = ..x..)) +
 
 
 ## Graph 5
+Interpretation:
+This stacked area chart shows the number of crimes in Chicago per month for the top 5 crime types.
+The chart shows that theft is the most common crime type, followed by battery and criminal damage.
+The chart also shows that the number of thefts is highest in the summer months, with a peak in July.
+This could be due to the warmer weather and longer days, which may lead to more people being outside and more opportunities for theft.
+The chart also shows a smaller peak in December, which could be due to the holiday season.
+The chart also shows that the number of thefts is lowest in the winter months, with a trough in February.
+This could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for theft.
+
+
 ```{r}
 # Packages
 library(ggplot2)
@@ -306,9 +298,7 @@ data <- data.frame(time, value, group)
 # stacked area chart
 ggplot(data, aes(x=time, y=value, fill=group)) + 
     geom_area()
-print(typeof(time))
-print(typeof(value))
-print(typeof(group))
+
 
 ```
 ```{r}
@@ -323,34 +313,22 @@ crimes_per_type <- crimes_data %>%
 # Only keep "THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT"
 crimes_per_type <- crimes_per_type %>% 
   filter(`Primary Type` %in% c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT"))
-print(crimes_per_type)
 
+# print(crimes_per_type)
 ```
 
 
+
 ```{r}
-library(ggplot2)
-library(dplyr)
+# create data
+time <- as.numeric(crimes_per_type$Month)  # x Axis
+value <- crimes_per_type$n        # y Axis
+group <- crimes_per_type$`Primary Type`      # group, one shape per group
+data <- data.frame(time, value, group)
 
-# Assuming 'crimes_per_type' is your data frame and 
-# 'Month', 'n', 'Primary Type' are column names in your data frame.
-
-# Convert 'Month' to a factor with levels ordered correctly
-crimes_per_type$Month <- factor(crimes_per_type$Month, levels = formatC(1:12, width = 2, flag = "0"))
-
-# Convert 'Primary Type' to a factor if it's not already
-crimes_per_type$`Primary Type` <- as.factor(crimes_per_type$`Primary Type`)
-
-# Make sure 'n' is numeric
-crimes_per_type$n <- as.numeric(crimes_per_type$n)
-
-# Plot the stacked area chart
-ggplot(crimes_per_type, aes(x = `Month`, y = `n`, fill = `Primary Type`)) + 
-  geom_area(stat = "identity") +
-  theme_minimal() +
-  labs(x = "Month", y = "Number of Crimes", fill = "Crime Type",
-       title = "Monthly Crime Counts by Type")
-
+# stacked area chart
+ggplot(data, aes(x=time, y=value, fill=group)) + 
+    geom_area()
 ```
 
 ## Graph 6
