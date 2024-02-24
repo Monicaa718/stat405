@@ -321,25 +321,25 @@ print(crime_counts)
 library(packcircles)
 library(ggplot2)
 library(viridis)
+# df <- data.frame(group = c("A", "B", "C", "D"),
+#                  value = c(10, 15, 20, 25))
+group = crime_counts$count.Var1
+value = crime_counts$count.Freq
 
-# Create data
-data <- data.frame(group=paste("Group", letters[1:20]), value=sample(seq(1,100),20)) 
-print(data)
-# Generate the layout
-packing <- circleProgressiveLayout(data$value, sizetype='area')
-packing$radius <- 0.95*packing$radius
-data <- cbind(data, packing)
-dat.gg <- circleLayoutVertices(packing, npoints=50)
-
-# Plot 
-ggplot() + 
-  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=id), colour = "black", alpha = 0.6) +
-  scale_fill_viridis() +
-  geom_text(data = data, aes(x, y, size=value, label = group), color="black") +
-  theme_void() + 
-  theme(legend.position="none")+ 
-  coord_equal()
-
+ggplot(crime_counts, aes(x = group, y = group, size = value, label = group)) +
+  geom_point(alpha = 0.7) +
+  scale_size_area(max_size = 20) +
+  theme_minimal() +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  labs(title = "Packed Circle Chart",
+       x = "Group",
+       y = "",
+       size = "Value") +
+  geom_text(color = "lightblue", size = 3)
 ```
 
 
