@@ -38,6 +38,9 @@ crimes_data <- read_csv("Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
 # Create a subset only including columns "Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", and "Longitude”
 crimes_data <- crimes_data[, c("Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", "Longitude")]
 
+# Remove rows with missing values
+crimes_data <- na.omit(crimes_data)
+
 # Extract the month from the Date column
 crimes_data$Month <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m")
 
