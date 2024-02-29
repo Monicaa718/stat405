@@ -158,8 +158,6 @@ Future improvement: use ggplot to create a more detailed and visually appealing 
 # Print a scatterplot of lattitude versus longitude. This could reveal if certain areas of the city are more prone to crime.
 
 sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
-district_lines = read_csv("C:/Users/jared/Downloads/PoliceDistrictDec2012.csv", show_col_types = FALSE)
-
 #install.packages("sf")
 
 library(sf)
@@ -172,8 +170,6 @@ ggplot() +
              size = 0.5, alpha = 0.5, color = "red") +
   labs(title = "Scatterplot of Crime Locations with District Lines",
        x = "Longitude", y = "Latitude")
-   
-  
 ```
 
 ## Density Plot
