@@ -125,13 +125,24 @@ Future improvement: use ggplot to create a more detailed and visually appealing 
 
 ```{r}
 # Print a scatterplot of lattitude versus longitude. This could reveal if certain areas of the city are more prone to crime.
+
 sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
+district_lines = read_csv("C:/Users/jared/Downloads/PoliceDistrictDec2012.csv", show_col_types = FALSE)
 
-plot(sampled_crimes$Longitude, sampled_crimes$Latitude, 
-     xlab = "Longitude", ylab = "Latitude",
-     main = "Scatterplot of Crime Locations",
-     xlim = c(-87.85, -87.5), ylim = c(41.6, 41.9), pch = 20, col = "blue", cex = 0.5, bg = "white")
+#install.packages("sf")
 
+library(sf)
+shapes = st_read("Boundaries - Police Districts (current)/geo_export_f2fab567-0511-4fce-901e-2f53fcec44f7.shp")
+
+ggplot() +
+  geom_sf(data = shapes) +
+  coord_sf() +
+  geom_point(aes(x = sampled_crimes$Longitude, y = sampled_crimes$Latitude,),
+             size = 0.5, alpha = 0.5, color = "red") +
+  labs(title = "Scatterplot of Crime Locations with District Lines",
+       x = "Longitude", y = "Latitude")
+   
+  
 ```
 
 ## Density Plot
@@ -265,10 +276,10 @@ type = crimes_data$`Primary Type`[filter == TRUE]
 crimes_data_filtered = data.frame(District = dist, Type = type)
 
 # Plot
-ggplot(crimes_data_filtered, aes(x = District)) +
+ggplot(crimes_data_filtered, aes(x = as.numeric(District))) +
   geom_bar(aes(fill = Type), position = "dodge") +
   facet_wrap(~Type, ncol = 3) +
-  theme_minimal() +
+  theme(axis.text.x = element_text(size = 7)) +
   labs(title = "Frequency of Crimes in Each District",
        x = "District",
        y = "Frequency of Crimes")
