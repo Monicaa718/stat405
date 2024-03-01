@@ -44,7 +44,7 @@ crimes_data <- na.omit(crimes_data)
 # Extract the month from the Date column
 crimes_data$Month <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m")
 
-# Extract the date  from the Date column
+# Extract the date from the Date column
 crimes_data$DateWithoutTime <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%d")
 
 # Extract the hour from the Date column
@@ -58,46 +58,56 @@ crimes_data$Hour <- format(as.POSIXct(crimes_data$Date, format = "%m/%d/%Y %I:%M
 
 
 
-
-
 #### Six Standard Plots
 ## Histogram
 With this plot we will analyze the number of crimes in different years.
 The graph shows that the number of crimes has been decreasing over time.
-
 ```{r}
 hist(crimes_data$Year, main = "Distribution of Years", xlab = "Year", 
      ylab = "Frequency", col = "skyblue", border = "white")
 ```
 
-## Curve
-With this plot we will analyze arrest rate over time.
-The graph shows that the arrest rate has been decreasing over time.
-It starts around 0.3 and slowly decreases to around 0.1  from 2001 to 2023
-
+## Line Plot
+With this plot, we will analyze the total number of crimes, the number of crimes arrested, and the number of crimes not arrested over time from 2001 to 2023.
+The graph indicates a significant decrease in the total number of crimes from 2001 to 2015. The disparity in the slopes of the blue line (Total Crimes) and the green line (Arrests) suggests a declining arrest rate over time.
 
 ```{r}
-# Plot the year on the x-axis and the arrest rate (calculated per year) on the y-axis to see if arrest rates are increasing or decreasing over time. In the Arrest column, True means an arrest was made, and False means no arrest was made.
-
-#install.packages("dplyr")
 library(dplyr)
+# Calculate total crimes, arrests, and non-arrests per year
+total_crimes_by_year <- crimes_data %>% 
+  group_by(Year) %>% 
+  summarise(Total = n())
+
 arrests_by_year <- crimes_data %>% 
   group_by(Year) %>% 
-  summarise(Arrest_Rate = sum(Arrest == "TRUE") / n())
-# arrests_by_year
-```
+  summarise(Arrest_num = sum(Arrest == "TRUE"))
 
+non_arrests_by_year <- crimes_data %>% 
+  group_by(Year) %>% 
+  summarise(Non_Arrest_num = sum(Arrest == "FALSE"))
 
-```{r}
-# curve
+# Merge the data frames
+merged_data <- merge(total_crimes_by_year, arrests_by_year, by = "Year")
+merged_data <- merge(merged_data, non_arrests_by_year, by = "Year")
 
-plot(arrests_by_year$Year, arrests_by_year$Arrest_Rate, 
+# Line plot
+plot(merged_data$Year, merged_data$Total, 
      type = "o",  
-     xlab = "Year", ylab = "Arrest Rate",
-     main = "Arrest Rate from 2001 to 2023",
-     col = "pink", pch = 16, ylim = c(0, 0.5))
-```
+     xlab = "Year", ylab = "Number of Crimes",
+     main = "Total Crimes, Arrests, and Non-Arrests from 2001 to 2023",
+     col = "blue", pch = 16, ylim = c(0, max(merged_data$Total)))
 
+lines(merged_data$Year, merged_data$Arrest_num, 
+      type = "o", 
+      col = "green", pch = 16)
+
+lines(merged_data$Year, merged_data$Non_Arrest_num, 
+      type = "o", 
+      col = "red", pch = 16)
+
+legend("topright", legend = c("Total Crimes", "Arrests", "Non-Arrests"), 
+       col = c("blue", "green", "red"), pch = 16, cex = 0.8)
+```
 
 ## Pie Chart
 With this plot we will analyze the frequency of the different crime types.
@@ -116,21 +126,14 @@ other_crime_types <- names(crime_type_percent)[crime_type_percent < 3]
 crime_type["Other"] <- sum(crime_type[other_crime_types])
 crime_type <- crime_type[!(names(crime_type) %in% other_crime_types)]
 
+# Adjust the margins of the plot
+par(mar = c(5, 4, 4, 8))
+
 # plot Primary Type pie chart
 pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(crime_type)))
 
-# Also plot the percentage in another graph
-par(xpd = TRUE)
-plot.new()
-
-order = order(crime_type_percent[names(crime_type)], decreasing = TRUE)
-
-round_desc_perc = round((crime_type_percent[names(crime_type)])[order], 2)
-ordered_names = names(crime_type)[order]
-ordered_colors = rainbow(length(crime_type))[order]
-
-legend("topright", legend = paste(ordered_names, "(", 
-  round_desc_perc, "%)"), cex = 0.8, fill = ordered_colors)
+# Include the legend within the same plot area as the pie chart
+legend("bottomright", legend = paste(ordered_names, "(", round_desc_perc, "%)"), cex = 0.5, fill = ordered_colors, inset=c(-0.2,-0.1))
 ```
 
 ## Barplot
@@ -173,25 +176,27 @@ ggplot() +
 ```
 
 ## Density Plot
-This is a density plot showing how crime incidents are distributed across different times of the day, with the x-axis representing hours since midnight and the y-axis representing the density of crime occurrences.
-The graph shows that crime is most likely to occur between 12:00 PM and 12:00 AM, with a peak around 8:00 PM.
+With this density plot we will analyze the distribution of crime incidents across different dates within a month, with the x-axis representing the dates since the first day of the month and the y-axis representing the density of crime occurrences.
+The graph reveals that crime is most likely to occur, on average, between 0.025 and 0.04, with a peak observed on day 1.
 
 ```{r}
-# Assuming your dataset is named 'data' and the date column is named 'Date'
+crimes_data$DateWithoutTime <- as.numeric(crimes_data$DateWithoutTime)
 
-# Step 1: Convert 'Date' to POSIXct (date-time object) and extract time
-crimes_data$Time <- format(strptime(crimes_data$Date, format = "%m/%d/%Y %I:%M:%S %p"), format = "%H:%M:%S")
-
-# Step 2: Convert Time to hours since midnight
-crimes_data$Hours <- as.numeric(substr(crimes_data$Time, 1, 2)) + 
-              as.numeric(substr(crimes_data$Time, 4, 5))/60 +
-              as.numeric(substr(crimes_data$Time, 7, 8))/3600
-
-# Step 3: Create the density plot
-plot(density(crimes_data$Hours, na.rm = TRUE), 
-     main = "Density of Crimes Over Time of Day",
-     xlab = "Hours (since midnight)",
+# Create the density plot
+density_plot <- density(crimes_data$DateWithoutTime, na.rm = TRUE)
+plot(density_plot, 
+     main = "Density of Crimes Over Time of Month",
+     xlab = "Dates",
      ylab = "Density")
+
+# Find the peak of the density plot
+peak_x <- density_plot$x[which.max(density_plot$y)]
+peak_y <- max(density_plot$y)
+
+# Add a point for the peak
+points(peak_x, peak_y, col = "red", pch = 19)
+text(peak_x, peak_y, labels = paste("Peak at Day", round(peak_x, 1)), pos = 4, col = "blue")
+
 
 # Density plot with ggplot
 # date = substr(crimes_data$Date, 1, 10)
@@ -277,7 +282,7 @@ ggplot(data, aes(x=x, y=y)) +
   geom_point( color="skyblue", size=3) +
   theme_minimal() +
   labs(title = "Number of Crimes in Chicago per Hour",
-       x = "Hour",
+       x = "Hours",
        y = "Number of Crimes")
 
 
@@ -285,6 +290,7 @@ ggplot(data, aes(x=x, y=y)) +
 ```
 
 ## Graph 2
+Interpretation:
 This graph is a Facet Wrap of a Bar plot. It shows for each of the
 most common types of crime the frequency of them in each district.
 From this graph we can see that some districts are much safer
@@ -313,8 +319,6 @@ ggplot(crimes_data_filtered, aes(x = as.numeric(District))) +
 
 
 ```
-
-
 
 
 ## Graph 3
@@ -400,9 +404,6 @@ crimes_per_day <- crimes_data %>%
 crimes_per_day$Month <- format(as.Date(crimes_per_day$DateWithoutTime, format = "%m/%d/%Y"), "%m")
 
 # print(crimes_per_day)
-
-
-
 ```
 
 
@@ -421,6 +422,20 @@ ggplot(crimes_per_day, aes(x = `n`, y = `Month`, fill = ..x..)) +
   )
 
 
+
+# Create the ridgeline plot for the crimes_data
+ggplot(crimes_per_day, aes(x = `n`, y = `Month`, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis(name = "Number of Crimes", option = "C") +
+  labs(title = 'Number of Crimes in Chicago per Month', x = "Number of Crimes", y = "") +
+  scale_y_discrete(labels = month.name) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  )
+
 ```
 
 
@@ -433,9 +448,6 @@ This could be due to the warmer weather and longer days, which may lead to more 
 The chart also shows a smaller peak in December, which could be due to the holiday season.
 The chart also shows that the number of thefts is lowest in the winter months, with a trough in February.
 This could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for theft.
-
-
-
 ```{r}
 # Extract month from Data in crimes_data
 crimes_data$Month <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m")
@@ -498,6 +510,3 @@ ggplot(my_data, aes(X, Y, fill= Z)) +
   geom_tile()
 
 ```
-
-
-
