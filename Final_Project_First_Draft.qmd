@@ -532,3 +532,27 @@ freq_types <- crimes_data %>%
 kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
 ```
 
+
+## Secondary data
+```{r}
+# police_station_data <- read_csv("Police_Stations.csv", show_col_types = FALSE)
+```
+
+
+## Move to SQLite dataset
+```{r}
+library(RSQLite)
+
+# Read the CSV file into R
+police_station_data <- read.csv("Police_Stations.csv")
+
+# Create SQLite database connection
+dcon <- dbConnect(SQLite(), dbname = "police_stations.db")
+
+# Write the data to the SQLite database
+dbWriteTable(dcon, "police_stations", police_station_data, overwrite = TRUE)
+
+# Disconnect from the SQLite database
+dbDisconnect(dcon)
+```
+
