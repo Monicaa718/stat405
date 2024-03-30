@@ -535,7 +535,7 @@ kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
 
 ## Secondary data
 ```{r}
-# police_station_data <- read_csv("Police_Stations.csv", show_col_types = FALSE)
+police_stations_data <- read_csv("Police_Stations.csv", show_col_types = FALSE)
 ```
 
 
@@ -543,16 +543,16 @@ kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
 ```{r}
 library(RSQLite)
 
-# Read the CSV file into R
-police_station_data <- read.csv("Police_Stations.csv")
+data_dir <- "~/Desktop/Stat405/third/"
+dbname <- "Crimes_and_Police_Stations"
+dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".sqlite"))
 
-# Create SQLite database connection
-dcon <- dbConnect(SQLite(), dbname = "police_stations.db")
+dbListTables(dcon)
+initExtension(dcon) # To load extension functions
 
-# Write the data to the SQLite database
-dbWriteTable(dcon, "police_stations", police_station_data, overwrite = TRUE)
+dbWriteTable(dcon, "crimes_data", crimes_data, overwrite = TRUE)
+dbWriteTable(dcon, "police_station_data", police_station_data, overwrite = TRUE)
 
-# Disconnect from the SQLite database
 dbDisconnect(dcon)
 ```
 
