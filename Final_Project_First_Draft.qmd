@@ -510,3 +510,25 @@ ggplot(my_data, aes(X, Y, fill= Z)) +
   geom_tile()
 
 ```
+
+
+
+## DPLYR
+This is to replace the pie graph with a dplyr pipeline 
+and achieve the same results. It finds the nine most common
+Primary Types of crime so we can use them for a future graph.
+
+```{r}
+library(dplyr)
+library(knitr)
+
+freq_types <- crimes_data %>%
+  select(`Primary Type`) %>%
+  group_by(`Primary Type`) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+
+kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
+```
+
