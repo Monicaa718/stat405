@@ -555,4 +555,47 @@ dbWriteTable(dcon, "police_station_data", police_station_data, overwrite = TRUE)
 
 dbDisconnect(dcon)
 ```
+```{r}
+## Add the primary and secondary data to SQLite dataset
+library(RSQLite)
+
+data_dir <- "~/Desktop/Stat405/third/"
+dbname <- "Crimes_and_Police_Stations"
+dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".sqlite"))
+
+dbListTables(dcon)
+initExtension(dcon) # To load extension functions
+
+dbWriteTable(dcon, "crimes_data", crimes_data, overwrite = TRUE)
+dbWriteTable(dcon, "police_stations_data", police_stations_data, overwrite = TRUE)
+```
+
+
+## Filter District name and location in secondary data
+We aim to see how many police stations are situated in areas with higher crime densities.
+According to the scatterplot, we find two those areas with latitude 41.85-41.90, longitude from  -87.78 to -87.60; latitude 41.75-41.80,longitude from -87.70 to -87.61
+```{r}
+library(dplyr)
+# Query for the first area
+res1 <- dbSendQuery(conn = dcon, "
+SELECT LATITUDE, LONGITUDE, COUNT(*) AS num_police_stations
+FROM police_stations_data
+WHERE LATITUDE BETWEEN 41.85 AND 41.90 AND LONGITUDE BETWEEN -87.78 AND -87.60
+")
+(area1 <- dbFetch(res1))
+
+# Query for the second area
+res2 <- dbSendQuery(conn = dcon, "
+SELECT LATITUDE, LONGITUDE, COUNT(*) AS num_police_stations
+FROM police_stations_data
+WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
+")
+(area2 <- dbFetch(res2))
+```
+
+
+```{r}
+dbDisconnect(dcon)
+```
+```
 
