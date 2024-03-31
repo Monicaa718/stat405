@@ -541,21 +541,6 @@ police_stations_data <- read_csv("Police_Stations.csv", show_col_types = FALSE)
 
 ## Move to SQLite dataset
 ```{r}
-library(RSQLite)
-
-data_dir <- "~/Desktop/Stat405/third/"
-dbname <- "Crimes_and_Police_Stations"
-dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".sqlite"))
-
-dbListTables(dcon)
-initExtension(dcon) # To load extension functions
-
-dbWriteTable(dcon, "crimes_data", crimes_data, overwrite = TRUE)
-dbWriteTable(dcon, "police_station_data", police_station_data, overwrite = TRUE)
-
-dbDisconnect(dcon)
-```
-```{r}
 ## Add the primary and secondary data to SQLite dataset
 library(RSQLite)
 
@@ -573,7 +558,7 @@ dbWriteTable(dcon, "police_stations_data", police_stations_data, overwrite = TRU
 
 ## Filter District name and location in secondary data
 We aim to see how many police stations are situated in areas with higher crime densities.
-According to the scatterplot, we find two those areas with latitude 41.85-41.90, longitude from  -87.78 to -87.60; latitude 41.75-41.80,longitude from -87.70 to -87.61
+According to the scatterplot, we find two those areas with latitude 41.85-41.90, longitude from  -87.78 to -87.60; latitude 41.75-41.80,longitude from -87.70 to -87.61.
 ```{r}
 library(dplyr)
 # Query for the first area
