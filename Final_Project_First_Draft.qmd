@@ -26,6 +26,8 @@ graphs and added six more graphs using ggplot.
 ```{r}
 library(readr)
 crimes_data <- read_csv("Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
+district_numeric <- as.numeric(crimes_data$District)
+district_range <- range(district_numeric)
 # names(crimes_data)
 # # print dimension
 # dim(crimes_data)
@@ -131,6 +133,11 @@ par(mar = c(5, 4, 4, 8))
 
 # plot Primary Type pie chart
 pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(crime_type)))
+
+# Create legend labels
+ordered_names <- names(sort(crime_type, decreasing = TRUE))
+round_desc_perc <- round(crime_type[ordered_names] / total_crimes * 100, 2)
+ordered_colors <- rainbow(length(crime_type))
 
 # Include the legend within the same plot area as the pie chart
 legend("bottomright", legend = paste(ordered_names, "(", round_desc_perc, "%)"), cex = 0.5, fill = ordered_colors, inset=c(-0.2,-0.1))
@@ -558,7 +565,7 @@ dbWriteTable(dcon, "police_stations_data", police_stations_data, overwrite = TRU
 
 ## Filter District name and location in secondary data
 We aim to see how many police stations are situated in areas with higher crime densities.
-According to the scatterplot, we find two those areas with latitude 41.85-41.90, longitude from  -87.78 to -87.60; latitude 41.75-41.80,longitude from -87.70 to -87.61.
+According to the scatterplot, we find two those areas with latitude 41.85-41.90, longitude from -87.78 to -87.60; latitude 41.75-41.80,longitude from -87.70 to -87.61. After querying for these areas, the results indicate that out of 25 police stations, a total of 7 police stations are situated near these areas. Therefore, we recommend establishing additional police stations in locations such as (41.85837, -87.62736) and (41.75214, -87.64423), which are the areas with the highest crime densities.
 ```{r}
 library(dplyr)
 # Query for the first area
