@@ -1,0 +1,448 @@
+---
+title: "Crimes in Chicago"
+subtitle: "Final Presentation"
+format:
+  revealjs: 
+    # embed-resources: true
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    css: styles.css
+    footer: STAT 405 - Benjamin Mao, Cecilia Xin, Monica Liu, Jared Boyd
+server: shiny
+---
+
+
+## Outline
+
+-   Introduction: Datasets Description & Data Cleaning
+-   Data Analysis and Modeling
+-   Text Mining
+-   Killer PLot
+-   Conclusion
+
+## Introduction
+Our project focused on enhancing the distribution of police resources in Chicago by conducting an in-depth examination of how crime trends vary according to different times and places.
+
+-   Data Description
+We use a primary dataset encompassing all reported crimes in Chicago from 2001 to Feb. 24, 2024
+We also use a secondary dataset “Police_Stations”, which shows the current location of police stations in Chicago, and a third dataset “Chicago Map”, which describes the geological boundaries of areas in Chicago.
+```{r}
+library(readr)
+crimes_data <- read_csv("Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
+district_numeric <- as.numeric(crimes_data$District)
+district_range <- range(district_numeric)
+```
+
+- Data Cleaning
+We select several key columns from the "Crimes - 2001 to Present" dataset for analysis: "Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", and "Longitude".
+breakdown the "Date" column to include year, month, day, hour, minute, and second of crime occurrences.
+identify crime types with "Primary Type" column, e.g., "Theft", "Battery", "Criminal Damage".
+use "Location Description" to detail the crime scene, such as "Street", "Residence", "Apartment".
+"Arrest" column indicating arrest status with "TRUE" for arrested and "FALSE" for not arrested.
+record precise crime locations with "Latitude" and "Longitude".
+remove rows containing NA values to ensure data integrity and prevent analytical issues.
+Decomposition and standardization of the "Date" column into "Month", "DateWithoutTime", and "Hour" for further analysis.
+No data cleaning is needed for second and third datasets, ensuring all police stations and Chicago map data are retained for comprehensive analysis.
+
+## Data Analysis and Modeling
+
+-   When crimes are committed
+-   Where crimes are committed
+
+
+## When crimes are committed
+
+-   Line Plot
+
+```{r}
+#| echo: true
+#| fig-width: 10
+#| fig-height: 4.5
+library(dplyr)
+# Calculate total crimes, arrests, and non-arrests per year
+total_crimes_by_year <- crimes_data %>% 
+  group_by(Year) %>% 
+  summarise(Total = n())
+
+arrests_by_year <- crimes_data %>% 
+  group_by(Year) %>% 
+  summarise(Arrest_num = sum(Arrest == "TRUE"))
+
+non_arrests_by_year <- crimes_data %>% 
+  group_by(Year) %>% 
+  summarise(Non_Arrest_num = sum(Arrest == "FALSE"))
+
+# Merge the data frames
+merged_data <- merge(total_crimes_by_year, arrests_by_year, by = "Year")
+merged_data <- merge(merged_data, non_arrests_by_year, by = "Year")
+
+# Line plot
+plot(merged_data$Year, merged_data$Total, 
+     type = "o",  
+     xlab = "Year", ylab = "Number of Crimes",
+     main = "Total Crimes, Arrests, and Non-Arrests from 2001 to 2023",
+     col = "blue", pch = 16, ylim = c(0, max(merged_data$Total)))
+
+lines(merged_data$Year, merged_data$Arrest_num, 
+      type = "o", 
+      col = "green", pch = 16)
+
+lines(merged_data$Year, merged_data$Non_Arrest_num, 
+      type = "o", 
+      col = "red", pch = 16)
+
+legend("topright", legend = c("Total Crimes", "Arrests", "Non-Arrests"), 
+       col = c("blue", "green", "red"), pch = 16, cex = 0.8)
+```
+
+-    Ridgeline Plot
+
+```{r}
+#| echo: true
+#| fig-width: 10
+#| fig-height: 4.5
+library(ggridges)
+library(ggplot2)
+library(viridis)
+# install.packages("hrbrthemes")
+library(hrbrthemes)
+# install.packages("dplyr")
+library(dplyr)
+
+#extract the date from Date
+crimes_data$DateWithoutTime <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m/%d/%Y")
+
+# Sum up the number of crimes per day
+crimes_per_day <- crimes_data %>% 
+  group_by(DateWithoutTime) %>% 
+  summarise(n = n())
+
+#extract the month from DateWithoutTime
+crimes_per_day$Month <- format(as.Date(crimes_per_day$DateWithoutTime, format = "%m/%d/%Y"), "%m")
+```
+
+-    Density Plot
+
+```{r}
+#| echo: true
+#| fig-width: 10
+#| fig-height: 4.5
+# Density plot with ggplot
+date = substr(crimes_data$Date, 1, 10)
+
+years_after <- as.numeric(substr(date, 1, 2)) / 30 +
+              as.numeric(substr(date, 4, 5)) / 365 +
+              as.numeric(substr(date, 7, 10))
+
+density = density(years_after)
+
+ggplot(data.frame = density) +
+  aes(density$x, density$y) +
+  geom_line() +
+  labs(x = "Year", y = "Density", title = "Density of Crime over Time")
+```
+
+-     Lollipop Plot
+
+```{r}
+#| echo: true
+#| fig-width: 10
+#| fig-height: 4.5
+library(ggplot2)
+library(dplyr)
+
+# Extract the hour data from Date
+crimes_data$Hour <- format(as.POSIXct(crimes_data$Date, format = "%m/%d/%Y %I:%M:%S %p"), format = "%H")
+
+# Sum up the number of crimes per hour
+crimes_per_hour <- crimes_data %>% 
+  group_by(Hour) %>% 
+  summarise(n = n())
+
+# Create data
+data <- data.frame(
+  x=crimes_per_hour$Hour,
+  y=crimes_per_hour$n
+)
+ 
+# Plot
+# Give a title to the graph
+ggplot(data, aes(x=x, y=y)) +
+  geom_segment( aes(x=x, xend=x, y=0, yend=y), color="skyblue") +
+  geom_point( color="skyblue", size=3) +
+  theme_minimal() +
+  labs(title = "Number of Crimes in Chicago per Hour",
+       x = "Hours",
+       y = "Number of Crimes")
+```
+
+
+## Where crimes are committed
+
+
+
+## Column Layout {.smaller}
+
+Arrange content into columns of varying widths:
+
+::: columns
+::: {.column width="35%"}
+#### Motor Trend Car Road Tests
+
+The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles.
+:::
+
+::: {.column width="3%"}
+:::
+
+::: {.column width="62%"}
+```{r}
+knitr::kable(head(mtcars)[,c("mpg",	"cyl", "disp", "hp", "wt")])
+```
+:::
+:::
+
+::: footer
+Learn more: [Multiple Columns](https://quarto.org/docs/presentations/revealjs/#multiple-columns)
+:::
+
+## Incremental Lists
+
+Lists can optionally be displayed incrementally:
+
+::: incremental
+-   First item
+-   Second item
+-   Third item
+:::
+
+. . .
+
+<br/> Insert pauses to make other types of content display incrementally.
+
+::: footer
+Learn more: [Incremental Lists](https://quarto.org/docs/presentations/revealjs/#incremental-lists)
+:::
+
+## Fragments
+
+Incremental text display and animation with fragments:
+
+<br/>
+
+::: {.fragment .fade-in}
+Fade in
+:::
+
+::: {.fragment .fade-up}
+Slide up while fading in
+:::
+
+::: {.fragment .fade-left}
+Slide left while fading in
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+Fade in then semi out
+:::
+
+. . .
+
+::: {.fragment .strike}
+Strike
+:::
+
+::: {.fragment .highlight-red}
+Highlight red
+:::
+
+::: footer
+Learn more: [Fragments](https://quarto.org/docs/presentations/revealjs/advanced.html#fragments)
+:::
+
+## Slide Backgrounds {background="#43464B"}
+
+Set the `background` attribute on a slide to change the background color (all CSS color formats are supported).
+
+Different background transitions are available via the `background-transition` option.
+
+::: footer
+Learn more: [Slide Backgrounds](https://quarto.org/docs/presentations/revealjs/#color-backgrounds)
+:::
+
+## Media Backgrounds {background="#43464B" background-image="images/milky-way.jpeg"}
+
+You can also use the following as a slide background:
+
+-   An image: `background-image`
+
+-   A video: `background-video`
+
+-   An iframe: `background-iframe`
+
+::: footer
+Learn more: [Media Backgrounds](https://quarto.org/docs/presentations/revealjs/#image-backgrounds)
+:::
+
+
+## Auto-Animate {auto-animate="true" auto-animate-easing="ease-in-out"}
+
+Automatically animate matching elements across slides with Auto-Animate.
+
+::: r-hstack
+::: {data-id="box1" auto-animate-delay="0" style="background: #2780e3; width: 200px; height: 150px; margin: 10px;"}
+:::
+
+::: {data-id="box2" auto-animate-delay="0.1" style="background: #3fb618; width: 200px; height: 150px; margin: 10px;"}
+:::
+
+::: {data-id="box3" auto-animate-delay="0.2" style="background: #e83e8c; width: 200px; height: 150px; margin: 10px;"}
+:::
+:::
+
+::: footer
+Learn more: [Auto-Animate](https://quarto.org/docs/presentations/revealjs/advanced.html#auto-animate)
+:::
+
+## Auto-Animate {auto-animate="true" auto-animate-easing="ease-in-out"}
+
+Automatically animate matching elements across slides with Auto-Animate.
+
+::: r-stack
+::: {data-id="box1" style="background: #2780e3; width: 350px; height: 350px; border-radius: 200px;"}
+:::
+
+::: {data-id="box2" style="background: #3fb618; width: 250px; height: 250px; border-radius: 200px;"}
+:::
+
+::: {data-id="box3" style="background: #e83e8c; width: 150px; height: 150px; border-radius: 200px;"}
+:::
+:::
+
+::: footer
+Learn more: [Auto-Animate](https://quarto.org/docs/presentations/revealjs/advanced.html#auto-animate)
+:::
+
+## Slide Transitions {.smaller}
+
+The next few slides will transition using the `slide` transition
+
+| Transition | Description                                                            |
+|------------|------------------------------------------------------------------------|
+| `none`     | No transition (default, switch instantly)                              |
+| `fade`     | Cross fade                                                             |
+| `slide`    | Slide horizontally                                                     |
+| `convex`   | Slide at a convex angle                                                |
+| `concave`  | Slide at a concave angle                                               |
+| `zoom`     | Scale the incoming slide so it grows in from the center of the screen. |
+
+::: footer
+Learn more: [Slide Transitions](https://quarto.org/docs/presentations/revealjs/advanced.html#slide-transitions)
+:::
+
+## Tabsets {.smaller .scrollable transition="slide"}
+
+::: panel-tabset
+### Plot
+
+```{r}
+library(ggplot2)
+ggplot(mtcars, aes(hp, mpg, color = am)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "loess")
+```
+
+### Data
+
+```{r}
+knitr::kable(mtcars)
+```
+:::
+
+::: footer
+Learn more: [Tabsets](https://quarto.org/docs/presentations/revealjs/#tabsets)
+:::
+
+## Interactive Slides {.smaller transition="slide"}
+
+Include Jupyter widgets and htmlwidgets in your presentations
+
+```{r}
+#| echo: false
+#| fig-height: 5
+library(leaflet)
+leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+```
+
+::: footer
+Learn more: [Jupyter widgets](https://quarto.org/docs/interactive/widgets/jupyter.html), [htmlwidgets](https://quarto.org/docs/interactive/widgets/htmlwidgets.html)
+:::
+
+
+## Preview Links
+
+Navigate to hyperlinks without disrupting the flow of your presentation.
+
+Use the `preview-links` option to open links in an iframe on top of your slides. Try clicking the link below for a demonstration:
+
+::: {style="text-align: center; margin-top: 1em"}
+[quarto.org/revealjs](https://quarto.org/docs/presentations/revealjs/){preview-link="true" style="text-align: center"}
+:::
+
+::: footer
+Learn more: [Preview Links](https://quarto.org/docs/presentations/revealjs/presenting.html#preview-links)
+:::
+
+## Text Mining
+In the text mining part, we filter useful data according to our pie graph and scatter plot in order to make it more convenient for us to modify the graphs in the future.
+
+- text mining of pie graph analysis 
+We replace a pie chart visualization with a dplyr pipeline to extract and display the nine most common primary crime types from a dataset. 
+
+```{r}
+library(dplyr)
+library(knitr)
+
+freq_types <- crimes_data %>%
+  select(`Primary Type`) %>%
+  group_by(`Primary Type`) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+
+kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
+```
+
+- text mining of scatterplot analysis 
+We aim to see how many police stations are situated in areas with higher crime densities.
+According to the scatterplot, we find two those areas with latitude from 41.85 to 41.90, longitude from -87.78 to -87.60; latitude from 41.75 to 41.80, longitude from -87.70 to -87.61.
+Therefore, we recommend establishing additional police stations in locations such as (41.85837, -87.62736) and (41.75214, -87.64423), which are the areas with the highest crime densities.
+
+```{r}
+library(dplyr)
+# Query for the first area
+res1 <- dbSendQuery(conn = dcon, "
+SELECT LATITUDE, LONGITUDE, COUNT(*) AS num_police_stations
+FROM police_stations_data
+WHERE LATITUDE BETWEEN 41.85 AND 41.90 AND LONGITUDE BETWEEN -87.78 AND -87.60
+")
+(area1 <- dbFetch(res1))
+
+# Query for the second area
+res2 <- dbSendQuery(conn = dcon, "
+SELECT LATITUDE, LONGITUDE, COUNT(*) AS num_police_stations
+FROM police_stations_data
+WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
+")
+(area2 <- dbFetch(res2))
+```
+
+
+## Killer Plot
+
+## Conclusion
+In conclusion, our project's analysis has led us to propose several targeted strategies to enhance the effectiveness of crime prevention and law enforcement efforts. We recommend a greater focus on the summer months and evening hours, which our data indicates as peak times for criminal activity. Furthermore, our findings suggest that deploying additional resources in districts 15-25 could prove beneficial, with our map providing further detailed insights.
