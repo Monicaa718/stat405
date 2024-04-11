@@ -1,0 +1,188 @@
+---
+title: "My Presentation"
+subtitle: "Group 7 Crimes in Chicago"
+format:
+  revealjs: 
+    # embed-resources: true
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    css: styles.css
+    footer: M9 - STAT 405/605 - Roberto Bertolusso - Department of Statistics, Rice University - Source [quarto.org/revealjs](https://quarto.org/docs/presentations/revealjs/)
+server: shiny
+---
+
+
+
+## My Shiny
+```{r context="server"}
+library(shiny)
+library(grid)
+library(dplyr)
+library(RSQLite)
+
+
+dcon <- dbConnect(SQLite(), dbname = "crimes_data_summary.db")
+dbListTables(dcon)
+
+res <- dbSendQuery(conn = dcon, "
+SELECT *
+FROM crimes_data_summary
+")
+# After establishing the database connection
+
+crimes_data_summary <- dbFetch(res)
+dbClearResult(res)
+dbDisconnect(dcon)
+
+```
+
+```{r}
+#| panel: fill
+plotOutput("CrimesPlot")
+```
+
+::: {style="font-size: 30%"}
+
+```{r}
+#| panel: sidebar
+#| layout-ncol: 3
+
+# let district be a vector containing all Zip_Code in crimes_data_summary
+district <- c("60601", "60602", "60603", "60604", "60605", "60606", "60607", "60608", "60609", "60610", "60611", "60612", "60613", "60614", "60615", "60616", "60617", "60618", "60619", "60620", "60621", "60622", "60623", "60624", "60625", "60626", "60628", "60629", "60630", "60631", "60632", "60633", "60634", "60636", "60637", "60638", "60639", "60640", "60641", "60642", "60643", "60644", "60645", "60646", "60647", "60649", "60651", "60652", "60653", "60654", "60655", "60656", "60657", "60659", "60660", "60661", "60666", "60707", "60827")
+
+# Two slider, one for year 2001-2024, one for month 1-12
+sliderInput("year", "Year", min = 2001, max = 2024, value = 2021)
+sliderInput("month", "Month", min = 1, max = 12, value = 1)
+
+
+selectInput("zipcode1", "Column 1 Zip Code", district)
+selectInput("zipcode2", "Column 2 Zip Code", district)
+selectInput("zipcode3", "Column 3 Zip Code", district)
+selectInput("zipcode4", "Column 4 Zip Code",  district)
+selectInput("zipcode5", "Column 5 Zip Code", district)
+
+```
+:::
+:::
+```{r}
+#| context = "server"
+
+  # draw_circle <- function(row, col, size, color) {
+  #   pushViewport(viewport(layout.pos.row = row+1, layout.pos.col = col))
+  #   grid.circle(gp = gpar(fill = color, alpha = 0.5), r = unit(size, "npc"))
+  #   popViewport()
+  # }
+  draw_circle <- function(row, col, size, color) {
+  pushViewport(viewport(layout.pos.row = row+1, layout.pos.col = col))
+  # Use a fixed size for now to ensure circles are drawn
+  grid.circle(gp = gpar(fill = color, alpha = 0.5), r = unit(0.1, "npc")) # Fixed size for testing
+  popViewport()
+}
+
+  
+  # get_color <- function(value) {
+  #   if (is.na(value)) {
+  #     # Handle NA values, perhaps by returning a default color
+  #     return("grey")
+  #   }
+  #   
+  #   color_ramp <- colorRamp(c("blue", "red"))
+  #   value <- min(max(value, 0), 1)
+  #   rgb_val <- color_ramp(value)
+  #   
+  #   # Check if RGB values are within the valid range
+  #   if (any(is.na(rgb_val)) || any(rgb_val < 0) || any(rgb_val > 255)) {
+  #     # Handle invalid RGB values
+  #     return("grey")
+  #   }
+  #   
+  #   return(rgb(rgb_val[1,1], rgb_val[1,2], rgb_val[1,3], alpha = 200, maxColorValue = 255))
+  # }
+  # 
+  # year_month <- c("year", "month")
+  # 
+  # calculate_size_color<- function(district, type, year, month){
+  #   district_data <- filter(crimes_data_summary, Zip_Code == district, YearMonth == paste(year, month, sep = ""))
+  #   type_district_data <- filter(district_data, `Primary Type` == type)
+  #   type_count <- as.numeric(type_district_data$Num_Crimes)
+  #   total_type_count <- as.numeric(district_data$Num_Crimes)
+  #   size <- (type_count / total_type_count) 
+  #   color <- get_color(as.numeric(type_district_data$Arrest_Rate))
+  #   return(c(size, color))
+  # }
+  
+  get_color <- function(value) {
+  if (length(value) != 1 || is.na(value)) {
+    return("grey")
+  }
+  
+  color_ramp <- colorRamp(c("blue", "red"))
+  value <- min(max(value, 0), 1)
+  rgb_val <- color_ramp(value)
+  return(rgb(rgb_val[1], rgb_val[2], rgb_val[3], maxColorValue = 255))
+}
+
+# Function to calculate size and color for a given district, type, year, and month
+calculate_size_color <- function(district, type, year, month) {
+  district_data <- filter(crimes_data_summary, Zip_Code == district, YearMonth == paste(year, month, sep = ""))
+  if (nrow(district_data) == 0) {
+    return(c(0, "grey"))  # Default values if no data is available
+  }
+  type_district_data <- filter(district_data, `Primary Type` == type)
+  if (nrow(type_district_data) == 0) {
+    return(c(0, "grey"))  # Default values if no data is available for the type
+  }
+  type_count <- as.numeric(type_district_data$Num_Crimes)
+  total_type_count <- sum(as.numeric(district_data$Num_Crimes))
+  size <- if (total_type_count > 0) (type_count / total_type_count) else 0
+  color <- get_color(as.numeric(type_district_data$Arrest_Rate))
+  return(c(size, color))
+}
+    
+output$CrimesPlot <- renderPlot({
+  
+  grid.newpage()
+    pushViewport(viewport(layout = grid.layout(7, 6)))
+    
+    
+    row_labels <- c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT")
+    colu <- 1
+    for (row in 2:6) {
+      # Draw row label (only once per row, when in the first column)
+      pushViewport(viewport(layout.pos.row = row, layout.pos.col = colu))
+      grid.text(row_labels[row-1], x = 0.1, just = "left")  # Adjust 'x' and 'just' as needed
+      popViewport()
+    }
+
+
+    # for (col in 2:6) {
+    # 
+    #   district <- toString(switch(col-1, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5))
+    # 
+    #   pushViewport(viewport(layout.pos.row = 1, layout.pos.col = col))
+    #   grid.text(district, y = 0.9, just = "top")  # Adjust 'y' and 'just' as needed
+    #   popViewport()
+    # 
+    # 
+    #   for (row in 1:3) {
+    #     size <- calculate_size_color(district, row_labels[col-1], "year", "month")[1]
+    #     color <- calculate_size_color(district, row_labels[col-1], "year", "month")[2]
+    #     draw_circle(row, col, size, color)
+    #   }
+    # }
+    
+      for (col in 2:6) {
+    district <- toString(switch(col-1, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5))
+    
+    for (row in 1:3) {
+      size_color <- calculate_size_color(district, row_labels[col-1], input$year, input$month)
+      draw_circle(row, col, size_color[1], size_color[2])
+    }
+  }
+    
+  })
+  
+
+```
