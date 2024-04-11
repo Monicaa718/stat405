@@ -38,6 +38,7 @@ dbDisconnect(dcon)
 
 ```
 
+
 ```{r}
 #| panel: fill
 plotOutput("CrimesPlot")
@@ -74,12 +75,14 @@ selectInput("zipcode5", "Column 5 Zip Code", district)
   #   grid.circle(gp = gpar(fill = color, alpha = 0.5), r = unit(size, "npc"))
   #   popViewport()
   # }
-  draw_circle <- function(row, col, size, color) {
+draw_circle <- function(row, col, size, color) {
+  # Scale the size up for visibility, and add a minimum size
+  scaled_size <- max(size * 10, 0.05)  # Adjust the scaling factor as needed
   pushViewport(viewport(layout.pos.row = row+1, layout.pos.col = col))
-  # Use a fixed size for now to ensure circles are drawn
-  grid.circle(gp = gpar(fill = color, alpha = 0.5), r = unit(0.1, "npc")) # Fixed size for testing
+  grid.circle(gp = gpar(fill = color, alpha = 0.5), r = unit(scaled_size, "npc"))
   popViewport()
 }
+
 
   
   # get_color <- function(value) {
@@ -126,21 +129,32 @@ selectInput("zipcode5", "Column 5 Zip Code", district)
 
 # Function to calculate size and color for a given district, type, year, and month
 calculate_size_color <- function(district, type, year, month) {
-  district_data <- filter(crimes_data_summary, Zip_Code == district, YearMonth == paste(year, month, sep = ""))
+  year_month <- paste(year, sprintf("%02d", month), sep = "")
+  district_data <- filter(crimes_data_summary, Zip_Code == district, YearMonth == year_month)
+  
   if (nrow(district_data) == 0) {
-    return(c(0, "grey"))  # Default values if no data is available
+    print(paste("No data for district", district, "in year-month", year_month))
+    return(c(0.1, "grey"))  # Set a default size to make it visible for testing
   }
+  
   type_district_data <- filter(district_data, `Primary Type` == type)
-  if (nrow(type_district_data) == 0) {
-    return(c(0, "grey"))  # Default values if no data is available for the type
-  }
-  type_count <- as.numeric(type_district_data$Num_Crimes)
-  total_type_count <- sum(as.numeric(district_data$Num_Crimes))
-  size <- if (total_type_count > 0) (type_count / total_type_count) else 0
-  color <- get_color(as.numeric(type_district_data$Arrest_Rate))
-  return(c(size, color))
+  type_count <- sum(as.numeric(type_district_data$Num_Crimes), na.rm = TRUE)
+  total_type_count <- sum(as.numeric(district_data$Num_Crimes), na.rm = TRUE)
+  
+  print(paste("Type count for", type, "in district", district, ":", type_count))
+  print(paste("Total count for district", district, ":", total_type_count))
+  
+  size <- ifelse(total_type_count > 0, max(as.numeric(type_count) / as.numeric(total_type_count), 0.01), 0.01)
+  color <- get_color(mean(as.numeric(type_district_data$Arrest_Rate), na.rm = TRUE))
+  
+  print(paste("Color for", type, "in district", district, ":", color))
+return(list(size = size, color = color))
 }
-    
+
+# Now test this function independently with some known values
+test_result <- calculate_size_color("60601", "THEFT", 2021, 3)
+print(test_result)
+
 output$CrimesPlot <- renderPlot({
   
   grid.newpage()
@@ -173,14 +187,15 @@ output$CrimesPlot <- renderPlot({
     #   }
     # }
     
-      for (col in 2:6) {
-    district <- toString(switch(col-1, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5))
-    
-    for (row in 1:3) {
-      size_color <- calculate_size_color(district, row_labels[col-1], input$year, input$month)
-      draw_circle(row, col, size_color[1], size_color[2])
-    }
+for (col in 2:6) {
+  district <- toString(switch(col-1, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5))
+  
+  for (row in 1:3) {
+    size_color <- calculate_size_color(district, row_labels[col-1], input$year, input$month)
+    draw_circle(row, col, size_color$size, size_color$color)
   }
+}
+
     
   })
   
