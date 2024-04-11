@@ -10,7 +10,6 @@ format:
     preview-links: auto
     css: styles.css
     footer: STAT 405 - Benjamin Mao, Cecilia Xin, Monica Liu, Jared Boyd
-server: shiny
 ---
 
 
@@ -34,7 +33,9 @@ crimes_data <- read_csv("Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
 district_numeric <- as.numeric(crimes_data$District)
 district_range <- range(district_numeric)
 ```
-
+::: footer
+Learn more: [primary data](https://catalog.data.gov/dataset/crimes-2001-to-present)
+:::
 - Data Cleaning
 We select several key columns from the "Crimes - 2001 to Present" dataset for analysis: "Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", and "Longitude".
 breakdown the "Date" column to include year, month, day, hour, minute, and second of crime occurrences.
@@ -113,14 +114,25 @@ library(dplyr)
 
 #extract the date from Date
 crimes_data$DateWithoutTime <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m/%d/%Y")
-
 # Sum up the number of crimes per day
 crimes_per_day <- crimes_data %>% 
   group_by(DateWithoutTime) %>% 
   summarise(n = n())
-
 #extract the month from DateWithoutTime
 crimes_per_day$Month <- format(as.Date(crimes_per_day$DateWithoutTime, format = "%m/%d/%Y"), "%m")
+
+# Create the ridgeline plot for the crimes_data
+ggplot(crimes_per_day, aes(x = `n`, y = `Month`, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis(name = "Number of Crimes", option = "C") +
+  labs(title = 'Number of Crimes in Chicago per Month', x = "Number of Crimes", y = "") +
+  scale_y_discrete(labels = month.name) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  )
 ```
 
 -    Density Plot
@@ -477,6 +489,26 @@ Use the `preview-links` option to open links in an iframe on top of your slides.
 ::: footer
 Learn more: [Preview Links](https://quarto.org/docs/presentations/revealjs/presenting.html#preview-links)
 :::
+## Secondary data
+```{r}
+police_stations_data <- read_csv("Police_Stations.csv", show_col_types = FALSE)
+```
+
+
+## Add the primary and secondary data to SQLite dataset
+```{r}
+library(RSQLite)
+
+data_dir <- "~/Desktop/Stat405/stat405"
+dbname <- "Crimes_and_Police_Stations"
+dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".sqlite"))
+
+dbListTables(dcon)
+initExtension(dcon) # To load extension functions
+
+dbWriteTable(dcon, "crimes_data", crimes_data, overwrite = TRUE)
+dbWriteTable(dcon, "police_stations_data", police_stations_data, overwrite = TRUE)
+```
 
 ## Text Mining
 In the text mining part, we filter useful data according to our pie graph and scatter plot in order to make it more convenient for us to modify the graphs in the future.
