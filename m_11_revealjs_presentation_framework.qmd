@@ -324,4 +324,7 @@ WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
 ## Killer Plot
 
 ## Conclusion
-In conclusion, our project's analysis has led us to propose several targeted strategies to enhance the effectiveness of crime prevention and law enforcement efforts. We recommend a greater focus on the summer months and evening hours, which our data indicates as peak times for criminal activity. Furthermore, our findings suggest that deploying additional resources in districts 15-25 could prove beneficial, with our map providing further detailed insights.
+
+- Greater focus in summer months and evening hours
+- More resources in districts 15 - 25
+- Police work is complicated and more data is needed to make more specific recommendations
