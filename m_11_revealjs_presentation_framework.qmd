@@ -1,16 +1,17 @@
 ---
 title: "Crimes in Chicago"
 subtitle: "Final Presentation"
-format: html
-  revealjs: 
-    # embed-resources: true
-    slide-number: true
-    chalkboard: 
-      buttons: false
-    preview-links: auto
-    css: styles.css
-    footer: STAT 405 - Benjamin Mao, Cecilia Xin, Monica Liu, Jared Boyd
-    server: shiny
+format: 
+  html:
+    revealjs: 
+      # embed-resources: true
+      slide-number: true
+      chalkboard: 
+        buttons: false
+      preview-links: auto
+      css: styles.css
+      footer: "STAT 405 - Benjamin Mao, Cecilia Xin, Monica Liu, Jared Boyd"
+server: shiny
 ---
 
 
