@@ -1,7 +1,7 @@
 ---
 title: "Crimes in Chicago"
 subtitle: "Final Presentation"
-format:
+format: html
   revealjs: 
     # embed-resources: true
     slide-number: true
@@ -47,15 +47,15 @@ police_stations_data <- read_csv("Police_Stations.csv", show_col_types = FALSE)
 :::
 
 ## Data Cleaning
--  Key columns from primary dataset: "Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", and "Longitude"
+-  Key columns from primary dataset: "Date", "Primary Type", "Arrest", "Year", "Latitude", and "Longitude"
 -  No data cleaning is needed for second and third datasets
 -  Add primary and secondary datasets to SQLite
 ```{r}
 #| echo: true
 #| fig-width: 10
-#| fig-height: 4.5
+#| fig-height: 3
 library(RSQLite)
-data_dir <- "~/Desktop/Stat405/stat405"
+data_dir <- "~/Desktop/Stat405/presentation"
 dbname <- "Crimes_and_Police_Stations"
 dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".sqlite"))
 dbListTables(dcon)
@@ -254,21 +254,22 @@ Learn more: [District lines for the scatter plot](https://data.cityofchicago.org
 
 
 # Text Mining   {background="#6B6B6B"}
-## Replace pie chart with a dplyr pipeline
+### Replace pie chart with a dplyr pipeline
 
 ```{r}
 #| echo: false
-#| fig-width: 3
-#| fig-height: 1
+#| fig-width: 4
+#| fig-height: 5
 library(dplyr)
 library(knitr)
+library(kableExtra)
 freq_types <- crimes_data %>%
   select(`Primary Type`) %>%
   group_by(`Primary Type`) %>%
   summarise(count = n()) %>%
   arrange(desc(count))
 kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type") %>%
-  kable_styling(font_size = 10)
+  kable_styling(font_size = 15)
 ```
 
 ## Scatterplot analysis {.smaller  .scrollable transition="slide"}
@@ -325,7 +326,8 @@ WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
 ## Killer Plot
 
 ## Conclusion
-
-- Greater focus in summer months and evening hours
-- More resources in districts 15 - 25
-- Police work is complicated and more data is needed to make more specific recommendations
+::: incremental
+-    Greater focus in summer months and evening hours
+-    More resources in districts 15 - 25
+-    Police work is complicated and more data is needed to make more specific recommendations
+:::
