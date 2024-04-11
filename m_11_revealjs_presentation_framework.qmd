@@ -201,7 +201,7 @@ ggplot(crime_counts, aes(x = group, y = group, size = value, label = group)) +
         axis.ticks.y=element_blank(),
         panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank()) +
-  labs(title = "Packed Circle Chart",
+  labs(title = "Frequency of Crimes by Type of Location",
        x = "Group",
        y = "",
        size = "Value") +
@@ -237,7 +237,7 @@ ggplot(crimes_data_filtered, aes(x = as.numeric(District))) +
 #| fig-height: 4.5
 sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
 library(sf)
-shapes = st_read("Boundaries - Police Districts (current)/geo_export_f2fab567-0511-4fce-901e-2f53fcec44f7.shp")
+shapes = st_read("Boundaries - Police Districts (current)/geo_export_f2fab567-0511-4fce-901e-2f53fcec44f7.shp", quiet = TRUE)
 ggplot() +
   geom_sf(data = shapes) +
   coord_sf() +
