@@ -252,8 +252,6 @@ ggplot(crimes_data_filtered, aes(x = as.numeric(District))) +
 #| fig-width: 10
 #| fig-height: 4.5
 sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
-district_lines = read_csv("PoliceDistrictDec2012.csv", show_col_types = FALSE)
-#install.packages("sf")
 library(sf)
 shapes = st_read("Boundaries - Police Districts (current)/geo_export_f2fab567-0511-4fce-901e-2f53fcec44f7.shp")
 ggplot() +
