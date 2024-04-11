@@ -502,6 +502,6 @@ output$CrimesPlot <- renderPlot({
 ## Conclusion
 ::: incremental
 -    Greater focus in summer months and evening hours
--    More resources in districts 15 - 25
+-    More resources in districts 5 - 10
 -    Police work is complicated and more data is needed to make more specific recommendations
 :::
