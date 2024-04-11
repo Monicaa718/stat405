@@ -274,7 +274,7 @@ kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
 
 ::: panel-tabset 
 
-### table
+### Table
 ```{r}
 #| echo: false
 #| fig-width: 10
@@ -297,7 +297,7 @@ WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
 (area2 <- dbFetch(res2))
 ```
 
-### code
+### Code
 ```{r}
 #| echo: true
 #| fig-width: 10
@@ -319,6 +319,7 @@ WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
 ")
 (area2 <- dbFetch(res2))
 ```
+:::
 
 ## Killer Plot
 
