@@ -267,7 +267,8 @@ freq_types <- crimes_data %>%
   group_by(`Primary Type`) %>%
   summarise(count = n()) %>%
   arrange(desc(count))
-kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
+kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type") %>%
+  kable_styling(font_size = 10)
 ```
 
 ## Scatterplot analysis {.smaller  .scrollable transition="slide"}
