@@ -77,7 +77,7 @@ selectInput("zipcode5", "Column 5 Zip Code", district)
   # }
 draw_circle <- function(row, col, size, color) {
   # Scale the size up for visibility, and add a minimum size
-  scaled_size <- max(size * 10, 0.05)  # Adjust the scaling factor as needed
+  scaled_size <- max(size * 1, 0.05)  # Adjust the scaling factor as needed
   pushViewport(viewport(layout.pos.row = row+1, layout.pos.col = col))
   grid.circle(gp = gpar(fill = color, alpha = 0.5), r = unit(scaled_size, "npc"))
   popViewport()
@@ -121,7 +121,7 @@ draw_circle <- function(row, col, size, color) {
     return("grey")
   }
   
-  color_ramp <- colorRamp(c("blue", "red"))
+  color_ramp <- colorRamp(c("pink", "purple"))
   value <- min(max(value, 0), 1)
   rgb_val <- color_ramp(value)
   return(rgb(rgb_val[1], rgb_val[2], rgb_val[3], maxColorValue = 255))
@@ -147,57 +147,42 @@ calculate_size_color <- function(district, type, year, month) {
   size <- ifelse(total_type_count > 0, max(as.numeric(type_count) / as.numeric(total_type_count), 0.01), 0.01)
   color <- get_color(mean(as.numeric(type_district_data$Arrest_Rate), na.rm = TRUE))
   
-  print(paste("Color for", type, "in district", district, ":", color))
-return(list(size = size, color = color))
+  print(paste("Zip Code:", district, "Type:", type, "Year:", year, "Month:", month, "Size:", size, "Color:", color))
+  
+  return(list(size = size, color = color))
 }
 
 # Now test this function independently with some known values
 test_result <- calculate_size_color("60601", "THEFT", 2021, 3)
 print(test_result)
-
 output$CrimesPlot <- renderPlot({
   
   grid.newpage()
-    pushViewport(viewport(layout = grid.layout(7, 6)))
-    
-    
-    row_labels <- c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT")
-    colu <- 1
-    for (row in 2:6) {
-      # Draw row label (only once per row, when in the first column)
-      pushViewport(viewport(layout.pos.row = row, layout.pos.col = colu))
-      grid.text(row_labels[row-1], x = 0.1, just = "left")  # Adjust 'x' and 'just' as needed
-      popViewport()
-    }
-
-
-    # for (col in 2:6) {
-    # 
-    #   district <- toString(switch(col-1, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5))
-    # 
-    #   pushViewport(viewport(layout.pos.row = 1, layout.pos.col = col))
-    #   grid.text(district, y = 0.9, just = "top")  # Adjust 'y' and 'just' as needed
-    #   popViewport()
-    # 
-    # 
-    #   for (row in 1:3) {
-    #     size <- calculate_size_color(district, row_labels[col-1], "year", "month")[1]
-    #     color <- calculate_size_color(district, row_labels[col-1], "year", "month")[2]
-    #     draw_circle(row, col, size, color)
-    #   }
-    # }
-    
-for (col in 2:6) {
-  district <- toString(switch(col-1, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5))
+  pushViewport(viewport(layout = grid.layout(7, 6)))
   
-  for (row in 1:3) {
-    size_color <- calculate_size_color(district, row_labels[col-1], input$year, input$month)
-    draw_circle(row, col, size_color$size, size_color$color)
+  # Crime type labels
+  row_labels <- c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT")
+  
+  # Draw row labels
+  for (row in 1:length(row_labels)) {
+    pushViewport(viewport(layout.pos.row = row+1, layout.pos.col = 1))
+    grid.text(row_labels[row], x = 0.1, just = "left")
+    popViewport()
   }
-}
-
-    
-  })
   
+  # Draw the circles for each zip code and crime type
+  for (col in 1:5) {
+    # Obtain the selected zip code for the current column
+    zipcode <- switch(col, input$zipcode1, input$zipcode2, input$zipcode3, input$zipcode4, input$zipcode5)
+    
+    for (row in 1:length(row_labels)) {
+      # Calculate the size and color for the current combination of zip code and crime type
+      size_color <- calculate_size_color(zipcode, row_labels[row], input$year, input$month)
+      
+      # Draw the circle at the corresponding position
+      draw_circle(row+1, col+1, size_color$size, size_color$color)
+    }
+  }
+})
 
 ```
