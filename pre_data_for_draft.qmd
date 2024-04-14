@@ -1,0 +1,67 @@
+---
+title: "pre_data"
+format: html
+editor: visual
+---
+# Load in the Data
+
+```{r}
+library(readr)
+crimes_data <- read_csv("./data/Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
+# names(crimes_data)
+# # print dimension
+# dim(crimes_data)
+# summary(crimes_data)
+```
+
+# Data cleaning
+```{r}
+
+# Create a subset only including columns "Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", and "Longitude”, and "District"
+crimes_data <- crimes_data[, c("Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", "Longitude", "District")]
+
+# Remove rows with missing values
+crimes_data <- na.omit(crimes_data)
+
+# Extract the month from the Date column
+crimes_data$Month <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m")
+
+# Extract the date from the Date column
+crimes_data$OnlyDate <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%d")
+
+# Extract the YearMonthDate from the Date column
+crimes_data$YearMonthDate <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%m/%d/%Y")
+
+# Extract the hour from the Date column
+crimes_data$Hour <- format(as.POSIXct(crimes_data$Date, format = "%m/%d/%Y %I:%M:%S %p"), format = "%H")
+
+# print(head(crimes_data$DateWithoutTime))
+# print(head(crimes_data$Month))
+# print(head(crimes_data$Hour))
+
+```
+
+
+
+## Secondary data
+```{r}
+police_stations_data <- read_csv("./data/Police_Stations.csv", show_col_types = FALSE)
+```
+
+## Add the primary and secondary data to SQLite dataset
+```{r}
+library(RSQLite)
+
+data_dir <- "./data/"
+dbname <- "Crimes_and_Police_Stations"
+dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".sqlite"))
+
+# dbListTables(dcon)
+initExtension(dcon) # To load extension functions
+
+dbWriteTable(dcon, "crimes_data", crimes_data, overwrite = TRUE)
+dbWriteTable(dcon, "police_stations_data", police_stations_data, overwrite = TRUE)
+```
+
+
+

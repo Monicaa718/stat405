@@ -1,0 +1,132 @@
+---
+title: "pre_data"
+format: html
+editor: visual
+---
+
+# Load data and add Zip_Code column
+
+```{r}
+library(readr)
+
+# crimes_data <- read_csv("./data/Crimes_-_2001_to_Present.csv", show_col_types = FALSE)
+zip_codes_data <- read_csv("./data/Zip_Codes.csv", show_col_types = FALSE)
+
+# Read from Crimes_and_Police_Stations to get crimes_data
+# The directory is ./data/Crimes_and_Police_Stations.sqlite
+library(RSQLite)
+library(DBI)
+con <- dbConnect(RSQLite::SQLite(), "./data/Crimes_and_Police_Stations.sqlite")
+crimes_data <- dbGetQuery(con, "SELECT * FROM crimes_data")
+
+```
+
+```{r}
+library(sf)  # for spatial features
+library(dplyr)  # for data manipulation
+
+zip_codes_sf <- st_as_sf(zip_codes_data, wkt = "the_geom")
+
+# Delete all NA rows in Location column
+crimes_data <- crimes_data[!is.na(crimes_data$Location), ]
+
+# sum(is.na(crimes_data$Latitude))
+# sum(is.na(crimes_data$Longitude))
+
+# Convert locations to an sf object
+crimes_data_sf <- st_as_sf(crimes_data, coords = c("Longitude", "Latitude"), crs = st_crs(zip_codes_sf))
+
+joined_data <- st_join(crimes_data_sf, zip_codes_sf)
+
+crimes_data$Zip_Code <- joined_data$ZIP
+
+# Delete NA in zip_code
+crimes_data <- crimes_data[!is.na(crimes_data$Zip_Code), ]
+
+# Only keep the columns we need: Date, Primary Type, Zip_Code, Arrest
+crimes_data <- crimes_data %>% select(Date, 'Primary Type', Zip_Code, Arrest)
+# colnames(crimes_data)
+
+# Only keep "THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT"
+crimes_data <- crimes_data %>%
+filter(`Primary Type` %in% c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT"))
+# unique(crimes_data$`Primary Type`)
+```
+
+# Data Processing
+
+```{r}
+#print the first 5 rows of crimes_data
+# head(crimes_data)
+colnames(crimes_data)
+# Extract YearMonth from Date and add it as a new column, e.g, 202105
+crimes_data$YearMonth <- format(as.Date(crimes_data$Date, format = "%m/%d/%Y"), "%Y%m")
+colnames(crimes_data)
+```
+
+```{r}
+library(dplyr)
+crimes_data_for_killer_plot <- crimes_data %>%
+  # Convert the Arrest column to a numeric type (0 = FALSE, 1 = TRUE) for calculation
+  mutate(Arrest = as.numeric(Arrest)) %>%
+  # Grouping the data by Primary Type, Zip_Code, and YearMonth
+  group_by(`Primary Type`, Zip_Code, YearMonth) %>%
+  # Summarizing the data: count = number of rows, arrest_rate = mean of Arrest
+  summarize(
+    Num_Crimes = n(),
+    Num_Arrest = sum(Arrest)
+  ) %>%
+  # Ungrouping the data frame after summarization
+  ungroup()
+
+# Calulat the arrest rate by Num_Arrest / Num_Crimes
+crimes_data_for_killer_plot$Arrest_Rate <- crimes_data_for_killer_plot$Num_Arrest / crimes_data_for_killer_plot$Num_Crimes
+
+# Delete the Num_Arrest column
+crimes_data_for_killer_plot <- crimes_data_for_killer_plot %>%
+  select(-Num_Arrest)
+
+```
+
+```{r}
+
+# Change the values in every column to be chracter type
+crimes_data_for_killer_plot$Num_Crimes <- as.character(crimes_data_for_killer_plot$Num_Crimes)
+crimes_data_for_killer_plot$Zip_Code <- as.character(crimes_data_for_killer_plot$Zip_Code)
+crimes_data_for_killer_plot$Arrest_Rate <- as.character(crimes_data_for_killer_plot$Arrest_Rate)
+
+# # Add a first row to the data frame, which includes the column names
+# # Assuming these are the correct column names from your existing data frame
+# correct_column_names <- names(crimes_data_for_killer_plot)
+# 
+# # Create a new data frame with the same column names and your desired values
+# new_row <- setNames(data.frame("Primary Type", "Zip Code", "YearMonth", "Num Crimes", "Arrest Rate"), correct_column_names)
+# 
+# # Bind the new row to the existing data frame
+# crimes_data_for_killer_plot <- rbind(new_row, crimes_data_for_killer_plot)
+
+```
+
+# Convert to sqlite
+
+```{r}
+# Convert crimes_data_for_killer_plot to db file
+library(DBI)
+library(RSQLite)
+
+data_dir <- "./data/"
+dbname <- "crimes_data_for_killer_plot"
+dcon <- dbConnect(SQLite(), dbname = paste0(data_dir, dbname, ".db"))
+
+dbListTables(dcon)
+initExtension(dcon) # To load extension function
+
+dbWriteTable(dcon, "crimes_data_for_killer_plot", crimes_data_for_killer_plot, overwrite = TRUE)
+
+
+```
+
+```{r}
+dbDisconnect(con)
+
+```
