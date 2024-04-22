@@ -217,7 +217,7 @@ shapes = st_read("./data/Boundaries - Police Districts (current)/geo_export_f2fa
 
 ggplot() +
   geom_sf(data = shapes) +
-  coord_sf() +
+  coord_sf(xlim = c(-88, -87.5), ylim = c(41.63, 42.05)) +
   geom_point(aes(x = sampled_crimes$Longitude, y = sampled_crimes$Latitude,),
              size = 0.5, alpha = 0.5, color = "red") +
   labs(title = "Scatterplot of Crime Locations with District Lines",
