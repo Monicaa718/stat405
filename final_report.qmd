@@ -15,6 +15,7 @@ toc-depth: 2                # Only titles that start with # or ##
 
 # Abstract
 This paper presents a comprehensive study aimed at optimizing police resource allocation in Chicago through a detailed analysis of crime patterns by time and location. Utilizing a primary dataset encompassing all reported crimes in Chicago from 2001 to Feb. 24, 2024, including specifics such as date, time, crime type, and precise location, we integrate a secondary dataset detailing the locations of police stations across the city. Our analysis employs a multifaceted approach, incorporating ggplot to visualize crime distributions, dplyr for data manipulation, and SQL queries to extract relevant information. Our findings reveal that the number of crimes has been decreasing over time, with theft, battery, and criminal damage being the most common crime types. We also identify the street, residences, and apartments as the most frequent crime locations. Furthermore, we pinpoint two areas with high crime densities that lack police stations, suggesting a need for increased police presence in these regions. Our study provides valuable insights for law enforcement agencies seeking to optimize resource allocation and enhance public safety.
+\newpage
 
 # Dataset Description
 The primary dataset is “Crimes - 2001 to Present”, which reflects reported incidents of crime (with the exception of murders where data exists for each victim) that occurred in the City of Chicago from 2001 to the present, minus the most recent seven days. Data is extracted from the Chicago Police Department's CLEAR (Citizen Law Enforcement Analysis and Reporting) system. The dimensions of the dataset are 7998563 rows and 22 columns. Columns include "Case Number", "Date", "Primary Type",  "Location", and much more.
@@ -26,6 +27,7 @@ The third dataset is “Chicago Map”, which describes the geological boundarie
 
 We then moved the CSV datasets related to crimes and police station locations into an SQLite database, leveraging the RSQLite package for database operations. We first set up the project directory and named the database Crimes_and_Police_Stations, followed by establishing a connection to this newly created 
 SQLite database located in a specified directory. Secondly, we listed existing database tables and loading extension functions to enhance SQLite's capabilities. We then import crimes_data and police_stations_data datasets into the database. This approach not only facilitates efficient data storage and retrieval within a relational database framework but also capitalizes on the synergies between R's data manipulation strengths and SQLite's reliability and simplicity for local data storage.
+\newpage
 
 # Data Cleaning and Preprocessing 
 For the primary dataset “Crimes - 2001 to Present”, several columns are selected for analysis, including "Date", "Primary Type", "Location Description", "Arrest", "Year", "Latitude", and "Longitude”. “Date” contains the year, month, date, hour, minute, and second information of when the crime took place. “Primary Type” describes the primary type of crime, such as “Theft”, “Battery”, “Criminal Damage”, etc. “Location Description” describes the location where the crime took place, such as "Street", "Residence", "Apartment", "Sidewalk", etc. “Arrest” represents whether the criminal is arrested or not, with “TRUE” being arrested and “FALSE” being unarrested. “Latitude” and “Longitude” record the specific location of crimes. 
@@ -35,10 +37,6 @@ Along with this, we will remove any rows with NA values as they will not be usef
 Finally, for simplicity later on the data in column “Date” is disassembled and converted into a standard format. From this, we take the “Month”, “DateWithoutTime”, and “Hour” all of which we will use in our analysis.
 
 No data cleaning is needed in the second and third data sets as the Police Stations are all needed and consistent data. As for the Chicago Map, we can not clean this data as it is a shape file and we need all data given to outline the districts.
-
-# Data Analysis
-## 1. When Crimes Are Committed
-Throughout this first section, the main focus will be to see when crimes are committed most commonly. This will help us start narrowing down when police stations should be provided more resources. The first graph is the number of crimes based on the year separated by whether or not they resulted in an arrest: 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -59,6 +57,22 @@ police_stations_data <- dbGetQuery(con, "SELECT * FROM police_stations_data")
 
 
 ```
+\newpage
+# Data Analysis
+## 1. When Crimes Are Committed
+Throughout this first section, the main focus will be to see when crimes are committed most commonly. This will help us start narrowing down when police stations should be provided more resources. The first graph is a hisogram of the number of crimes based on the year they were committed. This plot will help us see if there are any trends in the number of crimes over time.
+\
+\
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+hist(crimes_data$Year, main = "Distribution of Years", xlab = "Year", 
+     ylab = "Frequency", col = "skyblue", border = "white")
+```
+
+In this histogram, we can see that the number of crimes has been decreasing over time. This is a good sign as it shows that the police are doing a good job in controlling crime. However, we need to look at the number of crimes that resulted in an arrest to see if the police are doing a good job in catching criminals.
+
+Thus, we plot the second graph, which is a line plot of the number of crimes based on the year separated by whether or not they resulted in an arrest: 
+\
+\
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(RSQLite)
@@ -109,6 +123,8 @@ With a LINE PLOT, we analyzed the total number of crimes, the number of crimes a
 
 
 The second graph will be the number of crimes in Chicago based on the month they were committed. The goal of this graph is to see if there is any seasonal correlation or a specific month that police attention should increase.
+\
+\
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 # library
 library(ggridges)
@@ -152,25 +168,35 @@ ggplot(crimes_per_day, aes(x = `n`, y = `Month`, fill = ..x..)) +
 We used a RIDGELINE PLOT to show the number of crimes in Chicago per month. The plot shows that the number of crimes is highest in the summer months, with a peak in July. The reason for the peak could be due to the warmer weather and longer days, which may lead to more people being outside and more opportunities for crime. The plot also shows a smaller peak in December, which could be due to the holiday season. The number of crimes is lowest in the winter months, with a trough in February. The lowest amount could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for crime. 
 
 
-So far, we have looked at the frequency of crime in Chicago based on the year and the month. Here we will be looking at the density of crime based on the day that it was committed continuing the search for patterns for when to. 
+So far, we have looked at the frequency of crime in Chicago based on the year and the month. Here we will be looking at the density of crime based on the day that it was committed continuing the search for patterns for when to.  
 
-
+\
+\
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
-date = substr(crimes_data$Date, 1, 10)
-years_after <- as.numeric(substr(date, 1, 2)) / 30 +
-              as.numeric(substr(date, 4, 5)) / 365 +
-              as.numeric(substr(date, 7, 10))
-density = density(years_after)
-ggplot(data.frame = density) +
-  aes(density$x, density$y) +
-  geom_line() +
-  labs(x = "Year", y = "Density", title = "Density of Crime over Time")
+crimes_data$OnlyDate <- as.numeric(crimes_data$OnlyDate)
+
+# Create the density plot
+density_plot <- density(crimes_data$OnlyDate, na.rm = TRUE)
+plot(density_plot, 
+     main = "Density of Crimes Over Time of Month",
+     xlab = "Dates",
+     ylab = "Density")
+
+# Find the peak of the density plot
+peak_x <- density_plot$x[which.max(density_plot$y)]
+peak_y <- max(density_plot$y)
+
+# Add a point for the peak
+points(peak_x, peak_y, col = "red", pch = 19)
+text(peak_x, peak_y, labels = paste("Peak at Day", round(peak_x, 1)), pos = 4, col = "blue")
+
+ 
 ```
-We used a DENSITY PLOT to see the distribution of crime incidents across different dates within a month, with the x-axis representing the dates since the first day of the month and the y-axis representing the density of crime occurrences. The graph reveals that crime is most likely to occur, on average, between 0.025 and 0.04, with a peak observed on day 1. The graph is pretty consistent throughout the month, however it shows an interesting pattern that we hope to look more into.
+With this density plot we will analyze the distribution of crime incidents across different dates within a month, with the x-axis representing the dates since the first day of the month and the y-axis representing the density of crime occurrences. The graph reveals that crime is most likely to occur, on average, between 0.025 and 0.04, with a peak observed on day 1.
 
-Finally, the last graph to determine when crimes are being committed in Chicago is the frequency of crimes based on the time that they were committed.
-
-
+The next graph determines when crimes are being committed in Chicago is the frequency of crimes based on the time during a day that they were committed.
+\
+\
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 # Libraries
 library(ggplot2)
@@ -206,21 +232,25 @@ ggplot(data, aes(x=x, y=y)) +
 ```
 We used a LOLLIPOP PLOT to see how crime incidents are distributed across different times of the day, with the x-axis representing hours since midnight and the y-axis representing the number of crimes in Chicago. The graph shows that the number of crimes is highest in the evening, with a peak around 8:00 PM. This could be due to the warmer weather and longer days, which may lead to more people being outside and more opportunities for crime. The graph also shows that the number of crimes is lowest in the early morning, with a trough around 5:00 AM. This could be due to the minimal number of people outside, or even the decrease in police presence so fewer people are caught. We must stay weary that this data does not represent all crimes that are committed in Chicago and instead, only crimes that were caught.
 
+\newpage
 ## 2. Where crimes are committed
 
 Now that we have data on the frequency of when crimes in Chicago are committed, the next step is to figure out the frequency of where they are happening. The first graph for this is a scatter plot. Each dot represents a crime committed in the Chicago area based on its longitude and latitude. Along with this, using the shape data from the Chicago Data Portal we are able to outline the police districts in Chicago. 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
+options(repr.plot.width=10, repr.plot.height=10)
+
 sampled_crimes <- crimes_data[sample(1:nrow(crimes_data), 10000), ]
 library(sf)
 shapes = st_read("./data/Boundaries - Police Districts (current)/geo_export_f2fab567-0511-4fce-901e-2f53fcec44f7.shp", quiet = TRUE)
 
 ggplot() +
   geom_sf(data = shapes) +
+  # coord_sf() +
   coord_sf(xlim = c(-88, -87.5), ylim = c(41.63, 42.05)) +
   geom_point(aes(x = sampled_crimes$Longitude, y = sampled_crimes$Latitude,),
              size = 0.5, alpha = 0.5, color = "red") +
-  labs(title = "Scatterplot of Crime Locations with District Lines",
+  labs(title = "Scatterplot of Crime Locations with District.    ",
        x = "Longitude", y = "Latitude")
 
 ```
@@ -229,24 +259,100 @@ From this graph, we interpret that there are a few districts where crime is extr
 
 
 Moving onto the next graph to visualize where crime in Chicago is happening we have a graph of each common crime and its frequency in each district. Once again we are trying to focus on which districts need to be allocated more resources. First, we need to find the most common crimes by the primary type.
+\
+\
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# crime_type <- table(crimes_data$`Primary Type`)
+# total_crimes <- sum(crime_type)
+# crime_type_percent <- prop.table(crime_type) * 100
+# 
+# # sort types with frequencies below 3% into "Other"category 
+# other_crime_types <- names(crime_type_percent)[crime_type_percent < 3]
+# crime_type["Other"] <- sum(crime_type[other_crime_types])
+# crime_type <- crime_type[!(names(crime_type) %in% other_crime_types)]
+# 
+# # Adjust the margins of the plot
+# par(mar = c(5, 4, 4, 8))
+# 
+# # plot Primary Type pie chart
+# pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(crime_type)))
+# 
+# 
+# # Create legend labels
+# ordered_names <- names(sort(crime_type, decreasing = TRUE))
+# round_desc_perc <- round(crime_type[ordered_names] / total_crimes * 100, 2)
+# ordered_colors <- rainbow(length(crime_type))
+```
 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
-library(dplyr)
-library(knitr)
-library(kableExtra)
-freq_types <- crimes_data %>%
-  select(`Primary Type`) %>%
-  group_by(`Primary Type`) %>%
-  summarise(count = n()) %>%
-  arrange(desc(count))
-kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type") %>%
-  kable_styling(font_size = 10) # Increase the font size to make the table content larger
+# 
+# # Include the legend in another graph
+# par(xpd = TRUE)
+# plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+# legend("topright", legend = paste(ordered_names, "(", round_desc_perc, "%)"), fill = ordered_colors, bty = "n", cex = 0.8)
+# 
+# 
 
 ```
-This is the frequency of the nine most common crimes found through an SQLite query put within a Kable for show. Now that we have the most common primary types of crime committed we are able to plot the number of those crimes in each district. 
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
+crime_type <- table(crimes_data$`Primary Type`)
+total_crimes <- sum(crime_type)
+crime_type_percent <- prop.table(crime_type) * 100
+
+# sort types with frequencies below 3% into "Other"category 
+other_crime_types <- names(crime_type_percent)[crime_type_percent < 3]
+crime_type["Other"] <- sum(crime_type[other_crime_types])
+crime_type <- crime_type[!(names(crime_type) %in% other_crime_types)]
+
+# Adjust the margins of the plot
+par(mar = c(5, 4, 4, 8))
+
+# plot Primary Type pie chart
+pie(crime_type, main = "Distribution of Crimes by Type", col = rainbow(length(crime_type)))
 
 
+# Create legend labels
+ordered_names <- names(sort(crime_type, decreasing = TRUE))
+round_desc_perc <- round(crime_type[ordered_names] / total_crimes * 100, 2)
+ordered_colors <- rainbow(length(crime_type))
+
+# Include the legend within the same plot area as the pie chart
+legend("bottomright", legend = paste(ordered_names, "(", round_desc_perc, "%)"), cex = 0.5, fill = ordered_colors, inset=c(-0.1,-0.1))
+```
+
+With this pie chart we will analyze the frequency of the different crime types. The graph shows that theft is the most common crime type, followed by battery and criminal damage. We have ordered the legend in decreasing amounts to make a clear view of the most common to least common crimes.The result is a that the nine most common crimes are theft, battery, criminal damage, narcotics, assault, other offenses, burglary, deceptive practice, and motor vehicle theft.
+
+Also, we can replace the pie graph with SQL queries and achieve the same results.
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
+## Use SQL to find the most common crime types
+library(sqldf)
+library(knitr)
+
+# SQL query to select, group, count, and sort the primary crime types
+freq_types <- sqldf("
+  SELECT 
+    `Primary Type`,
+    COUNT(*) as count
+  FROM 
+    crimes_data
+  GROUP BY 
+    `Primary Type`
+  ORDER BY 
+    count DESC
+")
+
+kable(head(freq_types, 9), caption = "Number of Crimes Based on Primary Type")
+
+```
+This is the frequency of the nine most common crimes found through an SQLite query put within a Kable for show. We can see that he results in the table is consistent with the pie chart.
+
+Now that we have the most common primary types of crime committed we are able to plot the number of those crimes in each district. 
+\
+\
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 common_crimes = sort(table(crimes_data$`Primary Type`), decreasing = TRUE)[1:9]
 
@@ -270,10 +376,52 @@ ggplot(crimes_data_filtered, aes(x = as.numeric(District))) +
 ```
 This is a facet wrap graph and there are a couple of key factors visible here that are important to note. For one, assault, battery, burglary, criminal damage, motor vehicle theft, and other offenses all follow a similar curve when comparing the districts. They all almost look like a skewed right normal distribution with a spike on the tail. Between all of these crimes, this means that some of the safest districts are between districts 15-25 and some of the most dangerous are 5-10. From another perspective, focusing on the narcotics graph we see that there is a massive spike in district 11. There could be multiple reasons for this including that there are significantly more people in this district using and distributing narcotics or that the narcotics unit in this police district is much more effective at catching those who are connected to narcotics.
 
+Moreover, we can also use a stacked area chart to show the number of crimes in Chicago per month for the top 5 crime types.
+\
+\
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
+
+# Sum up the number of crimes per every crime type, also add the month
+# crimes_per_type <- crimes_data %>% 
+#   group_by(`Primary Type`, Month) %>% 
+#   summarise(n = n())
+
+crimes_per_type <- sqldf("
+  SELECT `Primary Type`, Month,
+  COUNT(*) as n
+  FROM crimes_data
+  GROUP BY `Primary Type`, Month
+")
+# Only keep "THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT"
+crimes_per_type <- crimes_per_type %>% 
+  filter(`Primary Type` %in% c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT"))
+
+# print(crimes_per_type)
+```
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# create data
+time <- as.numeric(crimes_per_type$Month)  # x Axis
+value <- crimes_per_type$n        # y Axis
+group <- crimes_per_type$`Primary Type`      # group, one shape per group
+data <- data.frame(time, value, group)
+
+# stacked area chart
+ggplot(data, aes(x=time, y=value, fill=group)) + 
+    geom_area()
+```
+
+The chart shows that theft is the most common crime type, followed by battery and criminal damage. It chart also shows that the number of thefts is highest in the summer months, with a peak in July. This could be due to the warmer weather and longer days, which may lead to more people being outside and more opportunities for theft. In addition, the chart shows a smaller peak in December, which could be due to the holiday season. Furthermore, the number of thefts is lowest in the winter months, with a trough in February. This could be due to the colder weather and shorter days, which may lead to fewer people being outside and fewer opportunities for theft.
+
+
 # Text Mining
 In the text mining part, we filter useful data according to our pie graph and scatter plot in order to make it more convenient for us to modify the graphs in the future.
 
 First, we incorporate text mining into our project, particularly through the use of the dplyr package in R, facilitating a novel approach to data manipulation and enhancement, enabling the generation of additional data columns and innovative filtering techniques. Specifically, we replace a pie chart visualization with a dplyr pipeline to extract and display the nine most common primary crime types from a dataset. This process involves selecting the relevant column (Primary Type), grouping the data by this column, summarizing to count the number of occurrences of each type, and then arranging the types in descending order of frequency. The result is a concise table output using knitr::kable(), which lists the top nine crime types by frequency. 
+\
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(dplyr)
 library(knitr)
@@ -307,8 +455,8 @@ WHERE LATITUDE BETWEEN 41.75 AND 41.80 AND LONGITUDE BETWEEN -87.70 AND -87.61
 ")
 (area2 <- dbFetch(res2))
 ```
-
-# Killer Plot
+\newpage
+# Killer Plot(2021 March)
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(shiny)
 library(grid)
@@ -379,10 +527,10 @@ calculate_size_color <- function(district, type, year, month) {
   renderPlot<-function(){
     
     # Add a title telling reader we select 2021 March
-    grid.text("2021 March", x = 0.5, y = 0.5, just = "center", gp = gpar(fontsize = 20))
+    # grid.text("2021 March", x = 0.5, y = 0.5, just = "center", gp = gpar(fontsize = 10))
     
   grid.newpage()
-  pushViewport(viewport(layout = grid.layout(7, 6)))
+  pushViewport(viewport(layout = grid.layout(7, 7)))
   
   # Crime type labels
   row_labels <- c("THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", "ASSAULT")
@@ -409,12 +557,12 @@ calculate_size_color <- function(district, type, year, month) {
       size_color <- calculate_size_color(zipcode[col], row_labels[row], "2021", "03")
       
       # Draw the circle at the corresponding position
-      draw_circle(row+1, col+1, size_color$size, size_color$color)
+      draw_circle(row+1, col+2, size_color$size, size_color$color)
       
     }
     
     # In each column, add a title of zipcode[col]
-    pushViewport(viewport(layout.pos.row = 1, layout.pos.col = col+1))
+    pushViewport(viewport(layout.pos.row = 1, layout.pos.col = col+1.5))
     grid.text(zipcode[col], x = 0.5, just = "left", gp = gpar(cex = 0.8))
     popViewport()
   }
